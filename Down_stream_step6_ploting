@@ -1,0 +1,263 @@
+#setwd("/camhpc/ngs/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/code_downstream/")
+R.Version()
+rm(list = ls()) #install.packages("ggVennDiagram") # 15min
+library("ggVennDiagram")
+library(ggplot2)
+require("UpSetR") # movies <- read.csv(system.file("extdata", "movies.csv", package = "UpSetR"), header = T, sep = ";")
+library(dplyr)
+library(ggrepel) # https://cran.r-project.org/web/packages/ggrepel/vignettes/ggrepel.html
+set.seed(42)
+
+din     = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230921054434_Zhen.Gao_GMfibro_3vs3/DSG_Result/From_DNANenxs_Master_3vs3_09-25/"
+out_dir = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230921054434_Zhen.Gao_GMfibro_3vs3/DSG_Result/splicing_offtargets_3vs3_09-29_abs_dPSI/" #_09-28_
+# 
+# din     = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230921051846_Zhen.Gao_ShSy5Y_3vs3/DSG_Result/From_DNANenxs_Master_3vs3_09-25/"
+# out_dir = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230921051846_Zhen.Gao_ShSy5Y_3vs3/DSG_Result/splicing_offtargets_3vs3_09-29_abs_dPSI/"
+
+# din     = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230824054737_Zhen.Gao_GM_noSMN1/DSG_Result/From_DNANenxs_Master_rerun_4vs4_09-25/"
+# out_dir = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230824054737_Zhen.Gao_GM_noSMN1/DSG_Result/splicing_offtargets_rerun_4vs4_09-29_abs_dPSI/"
+# 
+ # din     = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230823221304_Zhen.Gao_ShSy5Y_GRCh38/DSG_Result/From_DNANenxs_Master_rerun_4vs4_09-25/"
+ # out_dir = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230823221304_Zhen.Gao_ShSy5Y_GRCh38/DSG_Result/splicing_offtargets_rerun_4vs4_09-29_abs_dPSI/"
+
+dir.create(out_dir, recursive = T)
+setwd(out_dir)
+
+pformat = "/edgehpc/dept/compbio/users/dhuh/software/R/R_modified/pformat_whitebG.r"
+jet     = colorRampPalette(c("blue","green","yellow","orange","darkred")) # make gradient of colors #brightjet = colorRampPalette(c("#007FFF", "cyan","#7FFF7F", "yellow", "#FF7F00","#FF3535")) # make gradient of colors
+
+######################
+minpdj_maxdPSI_FDR_qual = function(tbtemp, colnn){         ##==09-28-all abs() ZG
+  ## input : BSSI formatted splice master table, optionally pre-filtered.
+  ## output : for each genesymbol, write  minpadj and dPSI for                   == ==  >>  rMATS                 (I)
+  ## output : for each genesymbol, write  minpadj and dPSI for                   == ==  >>  Leafcutter           (II)
+  ## output : for each genesymbol, write maxPdPSI and dPSI for                   == ==  >>  majiq               (III)
+   
+  gn = unique(tbtemp$geneSymbol)
+  
+  if( sum(gn  == ".") > 0 ){ gn = gn[ !(gn  == ".") ] }  # remove un-annotated genes
+  
+  minmaxcum = as.data.frame( matrix(0, nrow = length(gn) , ncol = 4 ) )      #  3 add algorithm =======> ZG 2023-10-05
+  colnames(minmaxcum) = colnn 
+  minmaxcum$genesymbol = gn
+  minmaxcum
+  
+  for(i in 1:length(gn)){
+    #       i
+    gntemp = gn[i]
+    #gntemp = "HTT"
+    #gntemp = "SMN1"
+    #gntemp = "SMN2"
+    
+    tbtemp2 = tbtemp[ which(tbtemp$geneSymbol ==  gntemp) , ]
+    
+    if(nrow(tbtemp2) ==  1){          # only one row of goi, no "min" needed
+      
+      dPSItemp        = abs( tbtemp2$dPSI )
+      algorithem_used = tbtemp2$Algorithm             # for majiq, keep PdPSI. =======> ZG 2023-10-05
+      if(tbtemp2$Algorithm ==  "majiq_v2"){                                                #  from "majiq" 
+        padj_PdPSI = 1- tbtemp2$PdPSI                               # for majiq, keep PdPSI. =======> ZG 2023-10-05
+      }else{
+        padj_PdPSI = tbtemp2$FDR      # for rmats and leafcutter keep padj
+      }
+      
+    }else{                            # if there are more than two rows of goi (gene of interest) , find either "min" padj or max PdPSI 
+      
+      rn_minpadj = which( tbtemp2$FDR == min( tbtemp2$FDR, na.rm = T) ) 
+      tbtemp3 = tbtemp2[ rn_minpadj, ]
+      
+      if(nrow(tbtemp3) ==  0){                # if there's no min, it's all majiq, with multiple lines
+        rn_maxpdpsi = which(tbtemp2$PdPSI  == max(tbtemp2$PdPSI, na.rm = T)  ) # ..get the max(PdPSI)
+        tbtemp3 = tbtemp2[rn_maxpdpsi,]
+        
+        if(nrow(tbtemp3) ==  1){       # if there's only one max PdPSI
+          dPSItemp =  abs( tbtemp3$dPSI )
+          padj_PdPSI = 1- tbtemp3$PdPSI                           # for majiq, keep PdPSI. =======> ZG 2023-10-05
+          algorithem_used = tbtemp3$Algorithm     ####=======>>
+        }else{                         #if there's more than on max dPSI
+          dPSItemp = max( abs( tbtemp3$dPSI) )  # pick the max(dPSI)
+          padj_PdPSI = 1- tbtemp3$PdPSI[1]
+          algorithem_used = tbtemp3$Algorithm[1]  ####=======>>
+        }
+        
+      }else if(nrow(tbtemp3) ==  1){  # if there's only one min (either rmats or leafcutter, no majiq)
+        dPSItemp   = abs( tbtemp3$dPSI )
+        padj_PdPSI = tbtemp3$FDR
+        algorithem_used = tbtemp3$Algorithm     ####=======>>
+      }else{                          # more than 1 min, pick max(dPSI). both are either rmats or leafcutter. 
+        dPSItemp = max( abs( tbtemp3$dPSI) )
+        padj_PdPSI = tbtemp3$FDR[1]
+        algorithem_used = tbtemp3$Algorithm[1]     ####=======>>
+      }
+    }
+    minmaxcum[i, 2] = padj_PdPSI
+    minmaxcum[i, 3] = dPSItemp
+    minmaxcum[i, 4] = algorithem_used
+    
+  }
+  
+  print(minmaxcum[i,])
+  return(minmaxcum)
+}
+
+coi_ar = dir(din, pattern = "dPSI0.1")    # all compounds, dPSI>0.1 #coi_ar = dir(din)
+### the following step must be checked !!
+coi_short_names = gsub( "_dPSI0.1_padj0.05_M50_EdPSI0.1_PdPSI0.9.csv" ,  "" , coi_ar )
+coi_short_names = gsub( "filteredevents_" ,  "" , coi_short_names )
+coi_short_names
+
+thr_dPSI_rm = 0.3; 
+thr_dPSI_lc = 0.25; 
+thr_dPSI_mj = 0.3;
+
+param = paste0("dPSIrm",thr_dPSI_rm,"_dPSIlc",thr_dPSI_lc,"_padj0.05_EdPSI",thr_dPSI_mj,"_PdPSI0.9_M50") # for fout
+
+# colnames(dPSI_bi) 
+# colnames(dPSI_bi) = gsub("dPSI_" , "", colnames(dPSI_bi) ) # colnames(dPSI_bi) = gsub("dPSI_","", gsub("_max.abs.dPSI..","",colnames(dPSI_bi)))
+# colnames(dPSI_bi) = gsub("BIO_" , "", colnames(dPSI_bi) )  # y %>% select(sub('_ln$', '', filter_vector))
+
+### minpadj per gene ####################
+minmaxall = c()
+
+for(i in 1:length(coi_ar)){
+  #    i = 1
+  coi = coi_ar[i] # compound of interest
+  #coi = "filteredevents_SH_BIO_2196772_3x_vs_SH_DMSO_dPSI0.1_padj0.05_M50_EdPSI0.1_PdPSI0.9.csv"    
+  #coi = "filteredevents_SH_BIO_2196772_10x_vs_SH_DMSO_dPSI0.1_padj0.05_M50_EdPSI0.1_PdPSI0.9.csv"    
+  # fin = dir(din)
+  
+  fin = dir(din , pattern = coi)
+  tbtemp = read.table(paste0(din,fin) ,stringsAsFactors = F,sep = ",",header = 1)
+  head(tbtemp)
+  dim(tbtemp)
+  
+  ## apply thresholding per algorithm ##
+  rm_t = tbtemp[ which( tbtemp$Algorithm ==  "rmats_turbo" & abs(tbtemp$dPSI)       >=  thr_dPSI_rm) , ] #   rm_t = tbtemp[ which( tbtemp$Algorithm ==  "rmats"      & abs(tbtemp$dPSI)       >=  thr_dPSI_rm) , ] 
+  lc_t = tbtemp[ which( tbtemp$Algorithm ==  "leafcutter"  & abs(tbtemp$dPSI)       >=  thr_dPSI_lc) , ]
+  mj_t = tbtemp[ which( tbtemp$Algorithm ==  "majiq_v2"    &     tbtemp$Cutoff_dPSI >=  thr_dPSI_mj) , ] #   mj_t = tbtemp[ which( tbtemp$Algorithm ==  "majiq"      &     tbtemp$Cutoff_dPSI >=  thr_dPSI_mj) , ]
+  
+  head(rm_t)
+  head(lc_t)
+  head(mj_t) #   tail(mj_t)
+  # dim(rm_t)
+  # dim(lc_t)
+  # dim(mj_t)
+  
+  tbtemp_t = rbind(rm_t, lc_t, mj_t)
+  tbtemp_t = tbtemp_t[!(tbtemp_t$geneSymbol ==  ".") ,] #clean up some names
+  # head(tbtemp_t)
+  #  dim(tbtemp_t)
+  #  goi = "HTT"; #   goi = "ATG16L1"; 
+  #  tbtemp_t[which(tbtemp_t$geneSymbol ==  goi) ,]
+  
+  ## extract min-pval-max-dPSI ##  #minmaxtemp = minpdj_maxdPSI( tbtemp = tbtemp_t, colnn = c("genesymbol",paste0("minpadj_maxPdPSI_",coi) , paste0("dPSI_",coi) ) )  ##  == == == == == == == == == == == == == == == == == == Call the function
+  #minmaxtemp = minpdj_maxdPSI_FDR_qual( tbtemp = tbtemp_t, colnn = c("genesymbol",paste0("minpadj_maxPdPSI_",coi_short_names[i]) , paste0("dPSI_",coi_short_names[i]), paste0("Algorithm_",coi_short_names[i]) ) )  ##  == Call the function
+  minmaxtemp = minpdj_maxdPSI_FDR_qual( tbtemp = tbtemp_t, colnn = c("genesymbol",paste0("FDR_equal_",coi_short_names[i]) , paste0("dPSI_",coi_short_names[i]), paste0("Algorithm_",coi_short_names[i]) ) )  ##  == Call the function
+  head(minmaxtemp)
+  dim(minmaxtemp)
+  
+  ## optional: clean up colnames ##
+  colnames(minmaxtemp) = gsub("filteredevents_","", sapply( strsplit( colnames(minmaxtemp) , paste0("_dPSI") ) , "[[", 1) ) #   gsub("filteredevents_TST11742_","", sapply( strsplit( colnames(minmaxtemp) , paste0("_dPSI") ) , "[[", 1) )
+  
+  ## merge ##
+  if(i ==  1){ minmaxall = minmaxtemp
+  } else{  minmaxall = merge(minmaxall, minmaxtemp, by.x = "genesymbol", by.y = "genesymbol" , all = T) }
+}
+
+head(minmaxall) 
+ dim(minmaxall) # [1] [1] 2331   85 for GM GM09677c SMA fibroblasts  cells  *** 2195   61 for SySy5Y cells                                  [2] 162  60 GM cells [1] 249   84 GM cells 
+
+#colnames(minmaxall) = gsub("minpadj_maxPdPSI_","Padj_maxP_", colnames(minmaxall)) # colnames(minmaxall) = gsub("filteredevents_","", colnames(minmaxall)) #              gsub("filteredevents_TST11955_","", colnames(minmaxall))
+#colnames(minmaxall) = gsub("WT100","WT_100", colnames(minmaxall))  #colnames(minmaxall) = gsub("WT500","WT_500", colnames(minmaxall)) 
+
+minmaxall_raw = minmaxall
+rownames(minmaxall) = make.names(minmaxall$genesymbol , unique = T)            # should take care     
+minmaxall$genesymbol = NULL 
+
+colnames(minmaxall) 
+row.names(minmaxall) 
+minmaxall[1:10, 1:10] 
+minmaxall_raw[1:10, 1:10] 
+
+# #minmaxall = minmaxall[,order(colnames(minmaxall))]
+# getwd()
+# 
+# fout = paste0("summarytable_minpadj_maxPdPSI_dPSI_",param,".csv")
+# write.csv(minmaxall_raw,file = fout,quote = F, row.names = F)
+# 
+# fout = paste0("summarytable_with_gene",param,".csv")
+# write.csv(minmaxall,file = fout,quote = F, row.names = T)
+
+########################################### 08-01-2023
+dim(minmaxall)
+minmaxall[1:10, 1:10]
+
+any(row.names(minmaxall) %in% "NA")
+any(row.names(minmaxall) %in% "NA.")
+any(row.names(minmaxall) %in% "NA..")
+minmaxall = minmaxall[ !(row.names(minmaxall) %in% c("NA", "NA.", "NA..")), ]
+
+for(i in 1:ncol(minmaxall) ){
+  my_vec = minmaxall[, i]
+  print(i)
+  print(any( is.infinite(my_vec)) )  #   any( is.infinite(my_vec))          68
+}
+
+dim(minmaxall) #  327 126 GM cells
+head(minmaxall) 
+colnames(minmaxall) 
+
+sample_types =  unique( sapply(strsplit( colnames(minmaxall),  split="_\\d{1,2}x_vs_") , `[`, 1) )  #numDSG_DMSO$cellline_dose = sapply(strsplit(numDSG_DMSO$cellline_DMSO, "_vs_") , `[`, 1) 
+sample_types
+
+
+
+head( minmaxall[ ,  grepl( "vs_.._DMSO"    , colnames(minmaxall)  ) ]  )# grepl NOT grep  #minmaxall_Ris  = minmaxall[ ,  grepl( "vs_.._1949634" , colnames(minmaxall)  ) ]  # grepl NOT grep
+
+Compounds_10x_vs_GM_DMSO = minmaxall[ ,  grepl( "_10x_vs_GM_DMSO"    , colnames(minmaxall)  ) ]  # grepl NOT grep  #minmaxall_Ris  = minmaxall[ ,  grepl( "vs_.._1949634" , colnames(minmaxall)  ) ]  # grepl NOT grep
+ dim(Compounds_10x_vs_GM_DMSO)
+head(Compounds_10x_vs_GM_DMSO)
+Compounds_10x_vs_GM_DMSO[1:2, 1:6]
+
+# [1]  "FDR_equal_GM_BIO_1949634" "dPSI_GM_BIO_1949634"      "Algorithm_GM_BIO_1949634"
+# [4]  "FDR_equal_GM_BIO_2178782" "dPSI_GM_BIO_2178782"      "Algorithm_GM_BIO_2178782"
+# [7]  "FDR_equal_GM_BIO_2186827" "dPSI_GM_BIO_2186827"      "Algorithm_GM_BIO_2186827"
+# [10] "FDR_equal_GM_BIO_2196772" "dPSI_GM_BIO_2196772"      "Algorithm_GM_BIO_2196772"
+# [13] "FDR_equal_GM_BIO_2196895" "dPSI_GM_BIO_2196895"      "Algorithm_GM_BIO_2196895"
+# [16] "FDR_equal_GM_BIO_2197306" "dPSI_GM_BIO_2197306"      "Algorithm_GM_BIO_2197306"
+# [19] "FDR_equal_GM_BIO_2199562" "dPSI_GM_BIO_2199562"      "Algorithm_GM_BIO_2199562"
+# [22] "FDR_equal_GM_BIO_2201042" "dPSI_GM_BIO_2201042"      "Algorithm_GM_BIO_2201042"
+# [25] "FDR_equal_GM_BIO_2204984" "dPSI_GM_BIO_2204984"      "Algorithm_GM_BIO_2204984"
+# [28] "FDR_equal_GM_BIO_2206678" "dPSI_GM_BIO_2206678"      "Algorithm_GM_BIO_2206678"
+# [31] "FDR_equal_GM_BIO_2207180" "dPSI_GM_BIO_2207180"      "Algorithm_GM_BIO_2207180"
+
+#dPSI_bi_working =  dPSI_bi_DMSO_working[,  grep( "^GM_2178782_..x_vs_|^GM_1949634_..x_vs_"    , colnames( dPSI_bi_DMSO_working)  ) ]  # grepl NOT grep
+dPSI_working = BIO_2178782_risdiplam_columns =  Compounds_10x_vs_GM_DMSO[ , grep( "2178782_..x_vs_|1949634_..x_vs_"    , colnames(Compounds_10x_vs_GM_DMSO)  ) ]
+
+head(BIO_2178782_risdiplam_columns)
+
+
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+head(dPSI_working)
+dPSI_working[1:2,]
+
+#dat[["four"]][is.na(dat[["four"]])] <- 0
+dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2178782_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2178782_10x_vs_GM_DMSO)] <- 0
+
+
+dim(dPSI_working)
+
+# http://www.sthda.com/english/wiki/ggplot2-title-main-axis-and-legend-titles
+# http://www.sthda.com/english/wiki/ggplot2-scatter-plots-quick-start-guide-r-software-and-data-visualization
+#ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2178782_10x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_10x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2178782_10x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_10x_vs_GM_DMSO, size = abs(log10(FDR_equal_GM_BIO_1949634_10x_vs_GM_DMSO ) ) ) )  +
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2178782_10x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_10x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2178782_10x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_10x_vs_GM_DMSO ) )  +
+    geom_point() + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+          x ="Risdiplam dPSI") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic"),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold")
+    )
