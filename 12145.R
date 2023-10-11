@@ -797,3 +797,63 @@ dev.off()
 # [50] "U1_WT_500_BIO2197294_vs_U1_WT_500_EtOH" 
 # [51] "U1_WT_500_Branaplam_vs_Branaplam_EtOH"  
 # [52] "U1_WT_500_Branaplam_vs_U1_WT_500_EtOH" 
+
+# run.03.DSG_counts_plot_only.R
+                              R.Version()
+rm(list = ls())
+#library(gplots)
+library(ggplot2)
+library(gridExtra)
+library(grid)
+library(withr); # in the Packages withr, select the 2.4.2 version  shown as library(withr, lib.loc = "/opt/R/4.0.3/lib/R/library")
+#setwd("/home/dhuh/project_RNAseq/TST11872_NGN2_HTT_9compound_profiling/analysis.03.splice_analysis/")
+# dir.create("/camhpc/ngs/projects/TST11955/dnanexus/20220723054602_Zhen.Gao/code/All_code_3vs3/analysis.03.splice_analysis")
+# setwd("/camhpc/ngs/projects/TST11955/dnanexus/20220723054602_Zhen.Gao/code/All_code_3vs3/analysis.03.splice_analysis")
+# dir.create("/camhpc/ngs/projects/TST11955/dnanexus/20220723054602_Zhen.Gao/code/All_code_3vs3/analysis.02.splicing_offtargets_stringent_threshold")
+# setwd("/camhpc/ngs/projects/TST11955/dnanexus/20220723054602_Zhen.Gao/code/All_gcode_3vs3/analysis.02.splicing_offtargets_stringent_threshold") # s
+#dir.create("/camhpc/ngs/projects/TST11955/dnanexus/20220723054602_Zhen.Gao/code/All_code_3vs3/analysis.02.splicing_offtargets_default_threshold")
+# dir.create("/camhpc/ngs/projects/TST11955/dnanexus/20220723054602_Zhen.Gao/code/All_code_3vs3/code_downstream/")
+# setwd("/camhpc/ngs/projects/TST11955/dnanexus/20220723054602_Zhen.Gao/code/All_code_3vs3/code_downstream/") #
+pformat = "/edgehpc/dept/compbio/users/dhuh/software/R/R_modified/pformat_whitebG.r"
+jet     = colorRampPalette(c("blue","green","yellow","orange","darkred")) # make gradient of colors
+
+
+#din = "/camhpc/ngs/projects/TST11955/dnanexus/20220723054602_Zhen.Gao/code/All_code_3vs3/analysis.02.splicing_offtargets/" # din = "./res.02.DSG_counts/"
+#din = "/camhpc/ngs/projects/TST11955/dnanexus/20220723054602_Zhen.Gao/code/All_code_3vs3/analysis.02.splicing_offtargets_default_threshold/" # din = "./res.02.DSG_counts/" 
+#din = "/camhpc/ngs/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/DownStream_Results/analysis.03.splice_analysis/" # din = "./res.02.DSG_counts/" 
+#din = "/camhpc/ngs/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/DownStream_Results_1/analysis.03.splice_analysis/" # din = "./res.02.DSG_counts/" 
+#din = "/camhpc/ngs/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/DownStream_Results/analysis.03.splice_analysis_3vs3/" # din = "./res.02.DSG_counts/" 
+#din = "/edgehpc/dept/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/DSG_Result/From_DNANenxs_Master_analysis.02.splicing_offtargets_3vs3/"
+din = "/edgehpc/dept/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/DSG_Result/From_DNANenxs_Master_analysis.02.splicing_offtargets_3vs3_direct_comparison_Joon/"
+setwd(din); getwd()
+#ls("din")
+
+fin = "binary_dPSIrm0.3_dPSIlc0.25_padj0.05_EdPSI0.3_PdPSI0.9_M50.csv" # fin = "binary_dPSIrm0.3_dPSIlc0.25_padj0.05_EdPSI0.3_PdPSI0.9_M502022-04-14.csv" 
+
+param = gsub(".csv","",gsub("binary_","",fin))
+
+dPSI_bi = read.csv( paste0(din, fin) , stringsAsFactors = F , row.names = 1 , check.names = F)
+ dim(dPSI_bi)
+head(dPSI_bi[, 1:10])
+head(dPSI_bi)
+
+## total number of DSG ###
+y        = colSums(dPSI_bi) ##################### get the totall DS events
+y        = y[order(names(y) , decreasing = T)]
+#names(y) = gsub("dPSI", "", names(y))
+y
+
+getwd()
+fout   = paste0("binary_numDSG_",param,"vertical.png") # "06_28.png")
+colorr = c( rep(rgb(0.7,0.7,0.7) ,4) ,rep(rgb(0.3,0.3,0.3) ,4)   )
+png(fout,width = 800, height = length(y)*25) # png(fout,width = 800, height = length(y)*25)
+source(pformat)
+par(mar = c(10,33,1,1)) #par(mar = c(10,20,1,1))
+#bp = barplot(y, xlim = c(0,max(y)*1.2) ,border = NA, xlab = "number(DSG)", names.arg = gsub("dPSI","",names(y) ) ,
+
+bp = barplot(y,  xlim = c(0, max(y)*1.2 ) , border = NA,  names.arg = gsub("dPSI","", names(y) ) ,
+           las = 2,  cex.axis = 1.2,  cex.names = 1.5, #cex.axis	 #           expansion factor for numeric axis labels.
+           horiz = T, col = colorr,
+           sub = "number(DSG)", font.sub = 4,  cex.sub = 2.0)  #http://howtoinr.weebly.com/customize-labels1.html col.sub = "Red",
+text(y, bp, labels = y, pos = 4, cex = 1.2, offset = 0.3) # lable the differenrtial gene count 
+dev.off()
