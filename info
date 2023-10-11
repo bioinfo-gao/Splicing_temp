@@ -1,0 +1,1021 @@
+########################### (0 NGSone infor checking)  2023-06-26 ########################### 
+91009 Splice Modulator Platform
+
+Objectives & Background:
+
+Majority of the ongoing splice modulating small molecule projects aim to target 5’ splice site – which basepairing with U1 snRNA constitutes the initial step of splicing. 
+The A nucleotide bulge formed during this 5’ splice site/U1 snRNA duplex provides a druggable space to promote splicing. 
+A modified U1 snRNA has been shown to mimic splice modulator and promote cryptic splicing. 
+
+This will allow us to 
+1) discover new cryptic splice sites which can be targeted to achieve desirable outcomes (target mRNA down/up regulation), 
+2) provide a list of potential off-targets when the particular 5’ splice site is strengthened and 
+3) provide mechanistic clue of how splice modulators could influence splicing in only the subset of DSGs modulated by U1 snRNA.
+
+Experiment Design:
+
+293 cells will be transiently transfected with U1 snRNA plasmids. 
+48 hrs later, total RNA will be purified for bulk RNA-seq. 
+
+Optionally, we could include cycloheximide, a known nonsense-mediated decay inhibitor, 
+
+to protect the cryptic NMD transcripts from degradation. Also, another control is to include benchmark splice modulators (BIO-2197294 and internal leads).
+
+Four biological replicates will be prepared to support differential splicing analyses.
+
+Test three different versions of U1 snRNA – 
+1) Wild type, 
+2) A bulge repaired (target : HTT), 
+3) UU mismatch repair (target : MSH3).
+
+Splice modulator treatment : need to finalize treatment duration and concentration.
+
+
+Data Analysis Deliverables:
+
+DSG and DEG analyses of U1 snRNA/splice modulator
+Group the DSGs into different categories – DSGs modulated only by U1 snRNA, DSGs modulated only by splice modulators and DSGs modulated by both.
+Motif enrichment analyses could be carried out to discover any feature/motif which is necessary for splice modulation by either U1 snRNA or splice modulator.
+
+########################### (1) ########################### 
+fill the columne of "Treatment of "table of samplesheet.tsv 
+(replace all - with _) "-" will procoduce leathal error the running 
+====>> " 'Group_test' entry BIO2195127-CHX for comparison BIO2195127-CHX_vs_5127 contains characters other than letters, numbers, and delimiters '_' or '.'. Please use only letters, numbers, '_' or '.', as these are safe characters for column names in R."
+
+U1_WT100_EtOH
+U1_WT100_CHX
+U1_WT500_EtOH
+U1_WT500_CHX
+
+U1_mut1_100_EtOH
+U1_mut1_100_CHX
+U1_mut1_500_EtOH
+U1_mut1_500_CHX
+
+U1_mut2_100_EtOH
+U1_mut2_100_CHX
+U1_mut2_500_EtOH
+U1_mut2_500_CHX
+
+Branaplam_EtOH
+Branaplam_CHX
+
+BIO2197294_EtOH
+BIO2197294_CHX
+
+BIO2195127_EtOH
+BIO2195127_CHX
+
+DMSO_EtOH
+DMSO_CHX
+
+U1_WT_500_Branaplam
+U1_WT_500_BIO2197294
+
+########################### (2) ########################### 
+EAinit /edgehpc/dept/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/
+loading resource ...
+Powered by the Research Data Sciences Group [fergal.casey@biogen.com;zhengyu.ouyang@biogen.com]
+
+########################### (3) ########################### 
+EAqc /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1/config.yml
+loading resource ...
+
+########################### (4) ###########################
+edit the table " /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1/data/compareInfo.csv"
+
+CompareName	                  Subsetting_group	Model	Covariate_levels	Group_name	Group_test	Group_ctrl	      Analysis_method	Shrink_logFC	LFC_cutoff
+BIO2195127-CHX_vs_5127		                      Treatment		            Treatment	BIO2195127_CHX	BIO2195127_EtOH	DESeq2	        Yes	          0.2
+
+
+########################### (5 === infact it' error from step 6 and may correct and rerun from from step 6) ########################### 
+Missing following columns in comparison definition file: /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_0/data/compareInfo.csv
+        CompareName
+I guess it's from symbol codine, and copy the above "" and replace the corrsoding column head
+
+########################### (6) ###########################
+EArun /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1/config.yml
+loading resource ...
+
+
+        Checking model for BIO2195127-CHX_vs_5127
+        Checking model for BIO2195127-CHX_vs_DMSO-CHX
+        Checking model for BIO2195127-EtOH_vs_DMSO
+        Checking model for BIO2195127-CHX_vs_DMSO
+        
+        Checking model for BIO2197294-CHX_vs_7294
+        Checking model for BIO2197294-CHX_vs_DMSO-CHX
+        Checking model for BIO2197294-EtOH_vs_DMSO
+        Checking model for BIO2197294-CHX_vs_DMSO
+        
+        Checking model for Branaplam-CHX_vs_Branaplam
+        Checking model for Branaplam-CHX_vs_DMSO-CHX
+        Checking model for Branaplam-EtOH_vs_DMSO
+        Checking model for Branaplam-CHX_vs_DMSO
+    
+        Checking model for DMSO-CHX__vs_DMSO
+    
+        Checking model for U1-WT100-CHX_vs_WT100
+        Checking model for U1-WT100-CHX_vs_DMSO-CHX
+        Checking model for U1-WT100-EtOH_vs_DMSO
+        Checking model for U1-WT100-CHX_vs_DMSO
+        
+        Checking model for U1-WT500-CHX_vs_WT500
+        Checking model for U1-WT500-CHX_vs_DMSO-CHX
+        Checking model for U1-WT500-EtOH_vs_DMSO
+        Checking model for U1-WT500-CHX_vs_DMSO
+
+        Checking model for U1-WT-500-BIO2197294_vs_WT-500
+        Checking model for U1-WT-500-BIO2197294_vs_DMSO
+        Checking model for U1-WT-500-Branaplam_vs_WT-500
+        Checking model for U1-WT-500-Branaplam_vs_DMSO
+
+        Checking model for U1-mut1-100-CHX_vs_mut1-100
+        Checking model for U1-mut1-100-CHX_vs_DMSO-CHX
+        Checking model for U1-mut1-100-EtOH_vs_DMSO
+        Checking model for U1-mut1-100-CHX_vs_DMSO
+
+        Checking model for U1-mut1-500-CHX_vs_mut1-500
+        Checking model for U1-mut1-500-CHX_vs_DMSO-CHX
+        Checking model for U1-mut1-500-EtOH_vs_DMSO
+        Checking model for U1-mut1-500-CHX_vs_DMSO
+
+        Checking model for U1-mut2-100-CHX_vs_mut2-100
+        Checking model for U1-mut2-100-CHX_vs_DMSO-CHX
+        Checking model for U1-mut2-100-EtOH_vs_DMSO
+        Checking model for U1-mut2-100-CHX_vs_DMSO
+
+        Checking model for U1-mut2-500-CHX_vs_mut5-500
+        Checking model for U1-mut2-500-CHX_vs_DMSO-CHX
+        Checking model for U1-mut2-500-EtOH_vs_DMSO
+        Checking model for U1-mut2-500-CHX_vs_DMSO
+
+reading sample counts
+        Filtering genes (41592) with minimal counts (>=) 1 in at least (>=) 1 samples
+reading effective length
+                The nominal length of following 602 genes will be used:
+                MIR425, MIR210, RNU6-834P, RNU6-661P, RNA5SP183, AL354797.1, RNU5F-1, RNY4P19, SNORD9, AL360219.1, AC096632.1, AC105267.1, RNA5SP477, AC021105.1, AC121247.1, RNU6-37P, RNU5A-1, RNU6-228P, RNU6-562P, RNA5SP124, 
+=================================================
+Results are saved in /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1
+
+-----> Please visit: http://compbio.biogen.com:3838/Quickomics/?testfile=TST12145
+Please carefully review the results before publishing:
+----->'EApub' can be used to publish the project into ShinyOne project manager: http://compbio.biogen.com/shinyone
+
+Powered by the Research Data Sciences Group [fergal.casey@biogen.com;zhengyu.ouyang@biogen.com]
+
+########################### (7 output) ########################### 
+# /edgehpc/dept/compbio/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/EA20230306_0/TST12086.RData
+/edgehpc/dept/compbio/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/EA20230306_0/TST12086.RData
+
+########################### (8 1st DNANexus Splicine run) 2023-06-26 ########################### 
+for DSD all the repeat1 was removed from bam 
+Note read length changt to 50
+
+
+
+########################### (0 NGSone infor checking) ########################### 
+91009 Splice Modulator Platform
+
+Objectives & Background:
+
+Majority of the ongoing splice modulating small molecule projects aim to target 5’ splice site – which basepairing with U1 snRNA constitutes the initial step of splicing. 
+The A nucleotide bulge formed during this 5’ splice site/U1 snRNA duplex provides a druggable space to promote splicing. 
+A modified U1 snRNA has been shown to mimic splice modulator and promote cryptic splicing. 
+
+This will allow us to 
+1) discover new cryptic splice sites which can be targeted to achieve desirable outcomes (target mRNA down/up regulation), 
+2) provide a list of potential off-targets when the particular 5’ splice site is strengthened and 
+3) provide mechanistic clue of how splice modulators could influence splicing in only the subset of DSGs modulated by U1 snRNA.
+
+Experiment Design:
+
+293 cells will be transiently transfected with U1 snRNA plasmids. 
+48 hrs later, total RNA will be purified for bulk RNA-seq. 
+
+Optionally, we could include cycloheximide, a known nonsense-mediated decay inhibitor, 
+
+to protect the cryptic NMD transcripts from degradation. Also, another control is to include benchmark splice modulators (BIO-2197294 and internal leads).
+
+Four biological replicates will be prepared to support differential splicing analyses.
+
+Test three different versions of U1 snRNA – 
+1) Wild type, 
+2) A bulge repaired (target : HTT), 
+3) UU mismatch repair (target : MSH3).
+
+Splice modulator treatment : need to finalize treatment duration and concentration.
+
+
+Data Analysis Deliverables:
+
+DSG and DEG analyses of U1 snRNA/splice modulator
+Group the DSGs into different categories – DSGs modulated only by U1 snRNA, DSGs modulated only by splice modulators and DSGs modulated by both.
+Motif enrichment analyses could be carried out to discover any feature/motif which is necessary for splice modulation by either U1 snRNA or splice modulator.
+
+########################### (1) ########################### 
+fill the columne of "Treatment of "table of samplesheet.tsv 
+(replace all - with _) "-" will procoduce leathal error the running 
+====>> " 'Group_test' entry BIO2195127-CHX for comparison BIO2195127-CHX_vs_5127 contains characters other than letters, numbers, and delimiters '_' or '.'. Please use only letters, numbers, '_' or '.', as these are safe characters for column names in R."
+
+U1_WT100_EtOH
+U1_WT100_CHX
+U1_WT500_EtOH
+U1_WT500_CHX
+U1_mut1_100_EtOH
+U1_mut1_100_CHX
+U1_mut1_500_EtOH
+U1_mut1_500_CHX
+U1_mut2_100_EtOH
+U1_mut2_100_CHX
+U1_mut2_500_EtOH
+U1_mut2_500_CHX
+Branaplam_EtOH
+Branaplam_CHX
+BIO2197294_EtOH
+BIO2197294_CHX
+BIO2195127_EtOH
+BIO2195127_CHX
+DMSO_EtOH
+DMSO_CHX
+U1_WT_500_Branaplam
+U1_WT_500_BIO2197294
+U1_WT100_EtOH
+U1_WT100_CHX
+U1_WT500_EtOH
+U1_WT500_CHX
+U1_mut1_100_EtOH
+U1_mut1_100_CHX
+U1_mut1_500_EtOH
+U1_mut1_500_CHX
+U1_mut2_100_EtOH
+U1_mut2_100_CHX
+U1_mut2_500_EtOH
+U1_mut2_500_CHX
+Branaplam_EtOH
+Branaplam_CHX
+BIO2197294_EtOH
+BIO2197294_CHX
+BIO2195127_EtOH
+BIO2195127_CHX
+DMSO_EtOH
+DMSO_CHX
+U1_WT_500_Branaplam
+U1_WT_500_BIO2197294
+U1_WT100_EtOH
+U1_WT100_CHX
+U1_WT500_EtOH
+U1_WT500_CHX
+U1_mut1_100_EtOH
+U1_mut1_100_CHX
+U1_mut1_500_EtOH
+U1_mut1_500_CHX
+U1_mut2_100_EtOH
+U1_mut2_100_CHX
+U1_mut2_500_EtOH
+U1_mut2_500_CHX
+Branaplam_EtOH
+Branaplam_CHX
+BIO2197294_EtOH
+BIO2197294_CHX
+BIO2195127_EtOH
+BIO2195127_CHX
+DMSO_EtOH
+DMSO_CHX
+U1_WT_500_Branaplam
+U1_WT_500_BIO2197294
+U1_WT100_EtOH
+U1_WT100_CHX
+U1_WT500_EtOH
+U1_WT500_CHX
+U1_mut1_100_EtOH
+U1_mut1_100_CHX
+U1_mut1_500_EtOH
+U1_mut1_500_CHX
+U1_mut2_100_EtOH
+U1_mut2_100_CHX
+U1_mut2_500_EtOH
+U1_mut2_500_CHX
+Branaplam_EtOH
+Branaplam_CHX
+BIO2197294_EtOH
+BIO2197294_CHX
+BIO2195127_EtOH
+BIO2195127_CHX
+DMSO_EtOH
+DMSO_CHX
+U1_WT_500_Branaplam
+U1_WT_500_BIO2197294
+
+########################### (2) ########################### 
+EAinit /edgehpc/dept/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/
+loading resource ...
+
+
+***** 2023-06-26 04:26:37 *****
+###########
+## ExpressionAnalysis: https://github.com/interactivereport/RNASequest.git
+## Pipeline Path: /mnt/depts/dept04/compbio/edge_tools/RNASequest
+## Pipeline Date: 2023-06-15 15:25:50 -0400
+## git HEAD: 1d618df7432a923e9bf82b22d7a13a7ce54277db
+###########
+
+Warning messages:
+1: package 'R.oo' was built under R version 4.1.3 
+2: package 'R.methodsS3' was built under R version 4.1.3 
+3: package 'matrixStats' was built under R version 4.1.3 
+        using /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/analysis-GX9yV1Q0G3b8pKX98qy68JXK
+Create gene annotation ...
+        /edgehpc/dept/compbio/reference/DNAnexus_references/rnaseq/homo_sapiens/Human.GRCh38.v34.l1_5.ERCC/Human.GRCh38.v34.l1_5.ERCC.transcript.gene_info.csv
+getting count file by genes.estcount_table or genes.expected_count
+        /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/genes.expected_count.tsv
+Extracting effective length by genes.effective_length
+        /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/genes.effective_length.tsv
+getting seqQC file by combined.metrics or merged_metrics
+        /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/merged_metrics.tsv
+Appending sequencing QC into sample meta file ...
+Creating project folder
+Create empty comparison template ...
+saving initialization ...
+==========================================
+ExpressionAnalysis project folder is created at /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1
+-----> 'EAqc' can be used to identify the covariates to be adjusted as:
+                EAqc /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1/config.yml
+
+
+----->'EArun' can be used to obtain the QuickOmics objects after comparison definition file is updated:
+                        /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1/data/compareInfo.csv
+                EArun /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1/config.yml
+
+
+-----> (additional) 'EAsplit' can be used to split into sub-project according to one column (split_meta) defined in the sample meta file.
+
+
+Powered by the Research Data Sciences Group [fergal.casey@biogen.com;zhengyu.ouyang@biogen.com]
+
+########################### (3) ########################### 
+EAqc /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1/config.yml
+loading resource ...
+
+
+***** 2023-06-26 04:27:26 *****
+###########
+## ExpressionAnalysis: https://github.com/interactivereport/RNASequest.git
+## Pipeline Path: /mnt/depts/dept04/compbio/edge_tools/RNASequest
+## Pipeline Date: 2023-06-15 15:25:50 -0400
+## git HEAD: 1d618df7432a923e9bf82b22d7a13a7ce54277db
+###########
+
+Warning messages:
+1: package 'R.oo' was built under R version 4.1.3 
+2: package 'R.methodsS3' was built under R version 4.1.3 
+3: package 'matrixStats' was built under R version 4.1.3 
+reading sample meta
+checking against config file
+reading sample counts
+        Filtering genes (41592) with minimal counts (>=) 1 in at least (>=) 1 samples
+reading effective length
+                The nominal length of following 602 genes will be used:
+                MIR425, MIR210, RNU6-834P, RNU6-661P, RNA5SP183, AL354797.1, RNU5F-1, RNY4P19, SNORD9, AL360219.1, AC096632.1, AC105267.1, RNA5SP477, AC021105.1, AC121247.1, RNU6-37P, RNU5A-1, RNU6-228P, RNU6-562P, RNA5SP124, SNORD33, RNU6-1266P, SNORD16, AC008121.1, SNORD36A, SNORD104, RNU6-1290P, RNU6-942P, RNA5SP452, AP003499.1, RNY1P16, AP000967.1, VTRNA1-1, RNU6-986P, RNY4P9, SNORD68, AC021443.1, AC096649.1, AC068831.1, RNU6-23P, RNU5B-1, AC009131.1, RNU5D-1, AL607035.1, RNU6-238P, AC009309.1, RNU6-1147P, RNU6-529P, RNU6-97P, RNA5SP199, RNU6-527P, RNA5SP483, AL034417.1, RNU6-833P, RNU6-1099P, RNA5SP74, AC090527.1, AC078818.1, RNU6-112P, AL135938.1, AL512604.1, RNU6-1209P, SNORD35B, RNU6-137P, AC144536.1, RNA5SP514, AC006116.1, AC100814.1, AL355490.1, RNA5SP68, SNORD8, AL445222.1, RNU6-82P, AC211429.1, SNORD46, AL138751.1, AC087884.1, RNU5A-8P, RNA5SP493, RNY1, RNU6-11P, RNU6-353P, RNU6-853P, AC089999.2, AC026347.1, RNA5S9, RNU6-1251P, SNORD14B, AC006960.1, AL772161.1, RNY4P7, AL356299.1, RNU6-312P, RNA5SP513, AL662899.2, AL118556.1, RNU6-593P, AL732366.1, RNA5SP84, RNA5SP505, RNU6-7, RNA5SP479, RNU6-34P, SNORD52, RNA5SP488, SNORD48, RNU6-702P, AL732366.2, AC005071.1, AL662797.1, RNU6-1240P, SNORD38A, AC012363.1, VTRNA1-2, RNY4P3, RNU6-742P, RNU6-1327P, AP005061.1, SNORD14C, AL031662.1, RNA5SP22, RNY3P12, SNORD6, RNU6-8, RNY3, RNU6-652P, AC062037.1, AP003357.1, SNORD82, AC010240.1, RNU5E-6P, SNORD34, AL590677.1, RNU6-805P, VTRNA1-3, RNU6-395P, AC116366.1, RNU6-431P, SNORD58A, RNU6-979P, RNU6-1, AC006583.1, Z99297.1, RNU6-945P, SNORD21, AC106802.1, RNU6-26P, AC004461.1, SNORD101, AL391262.1, SNORD37, AC004707.1, RNU6-20P, RNU6-767P, RNU6-398P, AC092610.1, RNU6-36P, AC027290.1, RNU6-80P, RNU6-4P, RNU6-1201P, AC012358.2, RNU6-5P, SNORD63, AL451074.1, RNU6-574P, RNU6-611P, AC016773.1, RNU6-975P, AP001453.1, AP001011.1, RNU6-3P, RNU6-171P, RNU6-22P, RNU6-166P, RNU6-31P, RNA5SP187, RNU6-106P, AC079601.1, AC093867.1, RNU6-1340P, RNU6-1157P, AC137767.1, AC106897.1, RNU6-125P, SNORD45A, RNU6-15P, RNU6-30P, SNORD7, RNU6-146P, AL133238.1, RNU6-2, RNU6-925P, AC091633.1, AC048351.1, AL160163.1, AC012442.1, AC027237.2, AP000704.1, RNU6-1311P, RNU6-9, RNU6-1237P, RNU6-33P, MIR25, MIR641, MIR621, MIR659, MIR573, MIR563, MIR135A1, MIR557, MIR320A, SNORD12C, MT-TL1, SNORD83B, SNORD83A, SNORD105, SNORD41, MT-TF, MT-TV, MT-TI, MT-TQ, MT-TM, MT-TA, MT-TN, MT-TC, MT-TY, MT-TS1, MT-TK, MT-TH, MT-TS2, MT-TL2, MT-TE, MT-TT, MT-TP, MIR196A1, MIR454, MIR765, MIR762, SNORD67, SNORD66, RNU6-298P, RNU6-1321P, RNA5SP244, AL445164.1, SNORD89, AL135998.2, SNORD70B, AL359759.1, RNU6-244P, RNU6-1242P, RNU6-817P, SNORD90, SNORD69, RNU6-918P, RNU6-466P, SNORD70, AC104794.1, AL355309.1, SNORD110, AL513534.2, MIR1184-2, MIR1262, RNU6ATAC27P, MIR1285-2, SNORD88A, RNU6ATAC18P, SNORD88B, SNORD100, MIR1184-1, SNORD99, RNU6ATAC10P, MIR1184-3, SNORD93, MIR1183, MIR1282, SNORD23, RNU6-1165P, AC007540.1, RNA5SP407, RNU6-1156P, SNORD19C, RNA5SP237, SNORD12B, AC015563.1, AC007405.1, RNU6-519P, RNU6-1025P, AC063943.1, RNU2-42P, RNU6-920P, AC080112.1, RNU6-564P, RNU6-172P, AC106033.1, RNU6-130P, RNU5E-9P, RNU6-293P, RNU6-1054P, AC055855.1, AL359260.1, AC006210.1, AC006548.1, RPL35AP4, AC137499.1, AC079150.1, SNORD57, RPL41P1, AC096531.1, AL162726.3, AC244023.1, SNORD56, AC123900.1, SNORD62B, AP1B1P2, AL021068.1, SNORD62A, AC113174.1, AL627311.1, GAGE12B, SNORD121B, SNORD11, AC122179.1, SNORD13P1, SNORD4A, SNORD42A, RNU6-625P, AC096757.1, AC217773.1, SNORD124, SNORD121A, AC004912.1, SNORD13, AC069200.2, SNORD127, AC068299.1, SNORD125, AC010327.1, SNORD5, AC112771.1, AC010598.1, RNU6-998P, AC004849.1, RNU6-1053P, RNA5SP385, RNA5SP217, RNU6-377P, RNU6-322P, RNA5SP162, RNU7-75P, RNU6-513P, RNU6-1143P, AC022211.1, RNY3P15, RNU6-313P, AC090227.1, RNU6-1206P, AC008393.2, RNY4, AC022916.1, AC005722.2, RNU6-118P, AL121924.2, RNU6-358P, RNA5SP395, RNU6-638P, RNU6-1004P, RNU6-100P, AC115088.1, RNA5SP168, RNU6-1016P, RNU6-914P, AC009509.1, RNU6-807P, AL590413.1, RNU6-122P, RNU6-678P, RNU6-1136P, RNU7-111P, AC078814.1, RNA5SP392, RNU6-577P, AC005037.2, RNU6-388P, AC061965.1, AC021443.2, RNU6-548P, RNU6-762P, AL139099.1, RNU6-1220P, RNA5SP340, AC016959.1, RNU6-902P, RNU6-988P, RNU6-323P, AC024995.1, AP001458.1, RNY1P9, RPL41P5, AC068831.3, MIR3936, MIR3161, SNORD43, MIR4635, AC008670.1, MIR4737, CR392039.1, SNORD55, SNORD95, MIR4296, MIR5094, SNORD92, MIR3195, MIR4263, MIR5188, MIR3682, SNORD53B, MIR4292, AC130289.1, MIR4477B, MIR4690, MIR3176, MIR5091, MIR4428, MIR4273, MIR4512, MIR4766, MIR3661, AC060780.3, AL162413.1, AL356157.2, AL096840.2, AC242498.1, RNU6-94P, SNORD11B, SNORD58B, AC037487.3, SNORD14A, RNU6-6P, AC103810.6, AC103810.7, SNORD96A, MIR6129, AL137060.2, AC092670.1, MIR6126, MIR6765, AP003499.3, AC004080.7, AP000446.2, SNORD1C, AL021937.5, AC004079.1, AL132655.4, MIR6832, SNORD28, AL021937.6, MIR378J, AL353804.4, AL049766.1, AC004079.2, MIR6750, AL133467.5, SNORD25, SNORD50B, AC211486.7, AC243994.1, AP003499.4, MIR6839, MIR6505, AC084368.1, MIR6720, AL021155.1, MIR6807, AC211486.8, SNORD27, AC004542.4, AL356356.2, AC211476.9, AC004080.8, AL445423.2, AL033538.2, MIR7111, AC092375.3, AL132655.6, AL353804.5, SNORD26, AL132655.7, RNA5SP530, SNORD49B, SNORD49A, FP671120.2, SNORD65, AC091179.4, AC106873.7, MIR7845, AC009812.5, AL627171.2, MIR6739, AL049766.3, AC012531.7, AL139099.4, AC117415.2, AL353804.7, AP000944.3, AC108065.2, AP000769.5, AC025188.3, AC084123.1, MIR6781, AC002542.4, MIR7161, MIR6080, AC114498.2, AC006386.2, AC012005.1, AC090498.1, AC006435.5, AC002059.2, AC009065.10, MIR3651, AC007383.4, MIR548D1, MIR941-1, MIR4256, FO624990.1, MIR3662, AL451062.3, MIR1244-3, MIR1244-4, MIR1244-2, AP003392.14, MIR555, MIR196B, MIR6850, MIR1182, MIR3198-2, MIR639, MIR378I, MIR4721, MIR3911, MIR3916, MIR6132, MIR3658, MIR3917, MIR3610, MIR1248, MIR4442, MIR492, MIR6084, MIR1281, MIR4315-1, MIR6834, MIR5703, MIR611, MIR4707, MIR198, MIR4700, MIR922, MIR4784, MIR3940, MIR4523, MIR4315-2, MIR7-1, MIR3615, MIR671, MIR658, MIR1909, MIR6516, MIR4321, MIR4800, MIR7113, MIR3655, MIR5047, MIR1244-1, MIR147B, MIR5001, MIR663A, MIR7110, MIR4724, MIR4647, MIR4691, MIR2110, MIR1236, MIR1304, MIR1306, MIR6721, MIR4680, MIR564, MIR4687, MIR4517, MIR3614, MIR3064, MIR7705, AP000553.4, AC135721.2, AC022506.1, AL669831.6, AC026740.2, AL359092.3, AC015871.7, AC007599.3
+reading sequence QC
+Finished TPM estimation!
+plotting sequencing QC @/mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1/sequenceQC.pdf
+Please check output files at: /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1 
+-----> PC analysis without covariate adjusted:
+        /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1/notAdjusted
+Warning message:
+In plotPCanlaysis(config, D$logTPM, D$meta, estC = D$counts, effL = D$effLength) :
+  < covariates_adjust is NOT set in the config file, no covariate was adjusted! >
+==========================================
+----->'EArun' can be used to obtain the QuickOmics object after necessary 'covariates_adjust' is set and comparison definition file is filled:
+                        /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1/data/compareInfo.csv
+                EArun /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1/config.yml
+
+
+-----> (additional) 'EAsplit' can be used to split into sub-project according to one column (split_meta) defined in the sample meta file.
+
+Powered by the Research Data Sciences Group [fergal.casey@biogen.com;zhengyu.ouyang@biogen.com]
+########################### (4) ###########################
+edit the table " /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1/data/compareInfo.csv"
+
+CompareName	                  Subsetting_group	Model	Covariate_levels	Group_name	Group_test	Group_ctrl	      Analysis_method	Shrink_logFC	LFC_cutoff
+BIO2195127-CHX_vs_5127		                      Treatment		            Treatment	BIO2195127_CHX	BIO2195127_EtOH	DESeq2	        Yes	          0.2
+BIO2195127-CHX_vs_DMSO-CHX		                  Treatment		            Treatment	BIO2195127_CHX	DMSO_CHX	      DESeq2	        Yes	          0.2
+BIO2195127-EtOH_vs_DMSO		                      Treatment		            Treatment	BIO2195127_EtOH	DMSO_EtOH	      DESeq2	        Yes	          0.2
+
+
+########################### (5 === infact it' error from step 6 and may correct and rerun from from step 6) ########################### 
+Missing following columns in comparison definition file: /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_0/data/compareInfo.csv
+        CompareName
+I guess it's from symbol codine, and copy the above "" and replace the corrsoding column head
+
+########################### (6) ###########################
+EArun /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1/config.yml
+loading resource ...
+
+
+***** 2023-06-26 04:29:57 *****
+###########
+## ExpressionAnalysis: https://github.com/interactivereport/RNASequest.git
+## Pipeline Path: /mnt/depts/dept04/compbio/edge_tools/RNASequest
+## Pipeline Date: 2023-06-15 15:25:50 -0400
+## git HEAD: 1d618df7432a923e9bf82b22d7a13a7ce54277db
+###########
+
+Warning messages:
+1: package 'R.oo' was built under R version 4.1.3 
+2: package 'R.methodsS3' was built under R version 4.1.3 
+3: package 'matrixStats' was built under R version 4.1.3 
+Warning message:
+In readLines(config[[one]]) :
+  incomplete final line found on '/mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1/data/compareInfo.csv'
+reading sample meta
+checking against config file
+        Checking model for BIO2195127-CHX_vs_5127
+        Checking model for BIO2195127-CHX_vs_DMSO-CHX
+        Checking model for BIO2195127-EtOH_vs_DMSO
+        Checking model for BIO2195127-CHX_vs_DMSO
+        Checking model for BIO2197294-CHX_vs_7294
+        Checking model for BIO2197294-CHX_vs_DMSO-CHX
+        Checking model for BIO2197294-EtOH_vs_DMSO
+        Checking model for BIO2197294-CHX_vs_DMSO
+        Checking model for Branaplam-CHX_vs_Branaplam
+        Checking model for Branaplam-CHX_vs_DMSO-CHX
+        Checking model for Branaplam-EtOH_vs_DMSO
+        Checking model for Branaplam-CHX_vs_DMSO
+        Checking model for DMSO-CHX__vs_DMSO
+        Checking model for U1-WT100-CHX_vs_WT100
+        Checking model for U1-WT100-CHX_vs_DMSO-CHX
+        Checking model for U1-WT100-EtOH_vs_DMSO
+        Checking model for U1-WT100-CHX_vs_DMSO
+        Checking model for U1-WT500-CHX_vs_WT500
+        Checking model for U1-WT500-CHX_vs_DMSO-CHX
+        Checking model for U1-WT500-EtOH_vs_DMSO
+        Checking model for U1-WT500-CHX_vs_DMSO
+        Checking model for U1-WT-500-BIO2197294_vs_WT-500
+        Checking model for U1-WT-500-BIO2197294_vs_DMSO
+        Checking model for U1-WT-500-Branaplam_vs_WT-500
+        Checking model for U1-WT-500-Branaplam_vs_DMSO
+        Checking model for U1-mut1-100-CHX_vs_mut1-100
+        Checking model for U1-mut1-100-CHX_vs_DMSO-CHX
+        Checking model for U1-mut1-100-EtOH_vs_DMSO
+        Checking model for U1-mut1-100-CHX_vs_DMSO
+        Checking model for U1-mut1-500-CHX_vs_mut1-500
+        Checking model for U1-mut1-500-CHX_vs_DMSO-CHX
+        Checking model for U1-mut1-500-EtOH_vs_DMSO
+        Checking model for U1-mut1-500-CHX_vs_DMSO
+        Checking model for U1-mut2-100-CHX_vs_mut2-100
+        Checking model for U1-mut2-100-CHX_vs_DMSO-CHX
+        Checking model for U1-mut2-100-EtOH_vs_DMSO
+        Checking model for U1-mut2-100-CHX_vs_DMSO
+        Checking model for U1-mut2-500-CHX_vs_mut5-500
+        Checking model for U1-mut2-500-CHX_vs_DMSO-CHX
+        Checking model for U1-mut2-500-EtOH_vs_DMSO
+        Checking model for U1-mut2-500-CHX_vs_DMSO
+reading sample counts
+        Filtering genes (41592) with minimal counts (>=) 1 in at least (>=) 1 samples
+reading effective length
+                The nominal length of following 602 genes will be used:
+                MIR425, MIR210, RNU6-834P, RNU6-661P, RNA5SP183, AL354797.1, RNU5F-1, RNY4P19, SNORD9, AL360219.1, AC096632.1, AC105267.1, RNA5SP477, AC021105.1, AC121247.1, RNU6-37P, RNU5A-1, RNU6-228P, RNU6-562P, RNA5SP124, SNORD33, RNU6-1266P, SNORD16, AC008121.1, SNORD36A, SNORD104, RNU6-1290P, RNU6-942P, RNA5SP452, AP003499.1, RNY1P16, AP000967.1, VTRNA1-1, RNU6-986P, RNY4P9, SNORD68, AC021443.1, AC096649.1, AC068831.1, RNU6-23P, RNU5B-1, AC009131.1, RNU5D-1, AL607035.1, RNU6-238P, AC009309.1, RNU6-1147P, RNU6-529P, RNU6-97P, RNA5SP199, RNU6-527P, RNA5SP483, AL034417.1, RNU6-833P, RNU6-1099P, RNA5SP74, AC090527.1, AC078818.1, RNU6-112P, AL135938.1, AL512604.1, RNU6-1209P, SNORD35B, RNU6-137P, AC144536.1, RNA5SP514, AC006116.1, AC100814.1, AL355490.1, RNA5SP68, SNORD8, AL445222.1, RNU6-82P, AC211429.1, SNORD46, AL138751.1, AC087884.1, RNU5A-8P, RNA5SP493, RNY1, RNU6-11P, RNU6-353P, RNU6-853P, AC089999.2, AC026347.1, RNA5S9, RNU6-1251P, SNORD14B, AC006960.1, AL772161.1, RNY4P7, AL356299.1, RNU6-312P, RNA5SP513, AL662899.2, AL118556.1, RNU6-593P, AL732366.1, RNA5SP84, RNA5SP505, RNU6-7, RNA5SP479, RNU6-34P, SNORD52, RNA5SP488, SNORD48, RNU6-702P, AL732366.2, AC005071.1, AL662797.1, RNU6-1240P, SNORD38A, AC012363.1, VTRNA1-2, RNY4P3, RNU6-742P, RNU6-1327P, AP005061.1, SNORD14C, AL031662.1, RNA5SP22, RNY3P12, SNORD6, RNU6-8, RNY3, RNU6-652P, AC062037.1, AP003357.1, SNORD82, AC010240.1, RNU5E-6P, SNORD34, AL590677.1, RNU6-805P, VTRNA1-3, RNU6-395P, AC116366.1, RNU6-431P, SNORD58A, RNU6-979P, RNU6-1, AC006583.1, Z99297.1, RNU6-945P, SNORD21, AC106802.1, RNU6-26P, AC004461.1, SNORD101, AL391262.1, SNORD37, AC004707.1, RNU6-20P, RNU6-767P, RNU6-398P, AC092610.1, RNU6-36P, AC027290.1, RNU6-80P, RNU6-4P, RNU6-1201P, AC012358.2, RNU6-5P, SNORD63, AL451074.1, RNU6-574P, RNU6-611P, AC016773.1, RNU6-975P, AP001453.1, AP001011.1, RNU6-3P, RNU6-171P, RNU6-22P, RNU6-166P, RNU6-31P, RNA5SP187, RNU6-106P, AC079601.1, AC093867.1, RNU6-1340P, RNU6-1157P, AC137767.1, AC106897.1, RNU6-125P, SNORD45A, RNU6-15P, RNU6-30P, SNORD7, RNU6-146P, AL133238.1, RNU6-2, RNU6-925P, AC091633.1, AC048351.1, AL160163.1, AC012442.1, AC027237.2, AP000704.1, RNU6-1311P, RNU6-9, RNU6-1237P, RNU6-33P, MIR25, MIR641, MIR621, MIR659, MIR573, MIR563, MIR135A1, MIR557, MIR320A, SNORD12C, MT-TL1, SNORD83B, SNORD83A, SNORD105, SNORD41, MT-TF, MT-TV, MT-TI, MT-TQ, MT-TM, MT-TA, MT-TN, MT-TC, MT-TY, MT-TS1, MT-TK, MT-TH, MT-TS2, MT-TL2, MT-TE, MT-TT, MT-TP, MIR196A1, MIR454, MIR765, MIR762, SNORD67, SNORD66, RNU6-298P, RNU6-1321P, RNA5SP244, AL445164.1, SNORD89, AL135998.2, SNORD70B, AL359759.1, RNU6-244P, RNU6-1242P, RNU6-817P, SNORD90, SNORD69, RNU6-918P, RNU6-466P, SNORD70, AC104794.1, AL355309.1, SNORD110, AL513534.2, MIR1184-2, MIR1262, RNU6ATAC27P, MIR1285-2, SNORD88A, RNU6ATAC18P, SNORD88B, SNORD100, MIR1184-1, SNORD99, RNU6ATAC10P, MIR1184-3, SNORD93, MIR1183, MIR1282, SNORD23, RNU6-1165P, AC007540.1, RNA5SP407, RNU6-1156P, SNORD19C, RNA5SP237, SNORD12B, AC015563.1, AC007405.1, RNU6-519P, RNU6-1025P, AC063943.1, RNU2-42P, RNU6-920P, AC080112.1, RNU6-564P, RNU6-172P, AC106033.1, RNU6-130P, RNU5E-9P, RNU6-293P, RNU6-1054P, AC055855.1, AL359260.1, AC006210.1, AC006548.1, RPL35AP4, AC137499.1, AC079150.1, SNORD57, RPL41P1, AC096531.1, AL162726.3, AC244023.1, SNORD56, AC123900.1, SNORD62B, AP1B1P2, AL021068.1, SNORD62A, AC113174.1, AL627311.1, GAGE12B, SNORD121B, SNORD11, AC122179.1, SNORD13P1, SNORD4A, SNORD42A, RNU6-625P, AC096757.1, AC217773.1, SNORD124, SNORD121A, AC004912.1, SNORD13, AC069200.2, SNORD127, AC068299.1, SNORD125, AC010327.1, SNORD5, AC112771.1, AC010598.1, RNU6-998P, AC004849.1, RNU6-1053P, RNA5SP385, RNA5SP217, RNU6-377P, RNU6-322P, RNA5SP162, RNU7-75P, RNU6-513P, RNU6-1143P, AC022211.1, RNY3P15, RNU6-313P, AC090227.1, RNU6-1206P, AC008393.2, RNY4, AC022916.1, AC005722.2, RNU6-118P, AL121924.2, RNU6-358P, RNA5SP395, RNU6-638P, RNU6-1004P, RNU6-100P, AC115088.1, RNA5SP168, RNU6-1016P, RNU6-914P, AC009509.1, RNU6-807P, AL590413.1, RNU6-122P, RNU6-678P, RNU6-1136P, RNU7-111P, AC078814.1, RNA5SP392, RNU6-577P, AC005037.2, RNU6-388P, AC061965.1, AC021443.2, RNU6-548P, RNU6-762P, AL139099.1, RNU6-1220P, RNA5SP340, AC016959.1, RNU6-902P, RNU6-988P, RNU6-323P, AC024995.1, AP001458.1, RNY1P9, RPL41P5, AC068831.3, MIR3936, MIR3161, SNORD43, MIR4635, AC008670.1, MIR4737, CR392039.1, SNORD55, SNORD95, MIR4296, MIR5094, SNORD92, MIR3195, MIR4263, MIR5188, MIR3682, SNORD53B, MIR4292, AC130289.1, MIR4477B, MIR4690, MIR3176, MIR5091, MIR4428, MIR4273, MIR4512, MIR4766, MIR3661, AC060780.3, AL162413.1, AL356157.2, AL096840.2, AC242498.1, RNU6-94P, SNORD11B, SNORD58B, AC037487.3, SNORD14A, RNU6-6P, AC103810.6, AC103810.7, SNORD96A, MIR6129, AL137060.2, AC092670.1, MIR6126, MIR6765, AP003499.3, AC004080.7, AP000446.2, SNORD1C, AL021937.5, AC004079.1, AL132655.4, MIR6832, SNORD28, AL021937.6, MIR378J, AL353804.4, AL049766.1, AC004079.2, MIR6750, AL133467.5, SNORD25, SNORD50B, AC211486.7, AC243994.1, AP003499.4, MIR6839, MIR6505, AC084368.1, MIR6720, AL021155.1, MIR6807, AC211486.8, SNORD27, AC004542.4, AL356356.2, AC211476.9, AC004080.8, AL445423.2, AL033538.2, MIR7111, AC092375.3, AL132655.6, AL353804.5, SNORD26, AL132655.7, RNA5SP530, SNORD49B, SNORD49A, FP671120.2, SNORD65, AC091179.4, AC106873.7, MIR7845, AC009812.5, AL627171.2, MIR6739, AL049766.3, AC012531.7, AL139099.4, AC117415.2, AL353804.7, AP000944.3, AC108065.2, AP000769.5, AC025188.3, AC084123.1, MIR6781, AC002542.4, MIR7161, MIR6080, AC114498.2, AC006386.2, AC012005.1, AC090498.1, AC006435.5, AC002059.2, AC009065.10, MIR3651, AC007383.4, MIR548D1, MIR941-1, MIR4256, FO624990.1, MIR3662, AL451062.3, MIR1244-3, MIR1244-4, MIR1244-2, AP003392.14, MIR555, MIR196B, MIR6850, MIR1182, MIR3198-2, MIR639, MIR378I, MIR4721, MIR3911, MIR3916, MIR6132, MIR3658, MIR3917, MIR3610, MIR1248, MIR4442, MIR492, MIR6084, MIR1281, MIR4315-1, MIR6834, MIR5703, MIR611, MIR4707, MIR198, MIR4700, MIR922, MIR4784, MIR3940, MIR4523, MIR4315-2, MIR7-1, MIR3615, MIR671, MIR658, MIR1909, MIR6516, MIR4321, MIR4800, MIR7113, MIR3655, MIR5047, MIR1244-1, MIR147B, MIR5001, MIR663A, MIR7110, MIR4724, MIR4647, MIR4691, MIR2110, MIR1236, MIR1304, MIR1306, MIR6721, MIR4680, MIR564, MIR4687, MIR4517, MIR3614, MIR3064, MIR7705, AP000553.4, AC135721.2, AC022506.1, AL669831.6, AC026740.2, AL359092.3, AC015871.7, AC007599.3
+reading sequence QC
+Finished TPM estimation!
+Plotting correlation between covarites and comparison groups:
+        Well_Row, Well_Column, RIN v.s. Treatment
+        Treatment .vs. Well_Row
+        Treatment .vs. Well_Column
+        Treatment .vs. RIN
+====== Starting DE analysis ...
+serial DEG process ...
+Comparison for BIO2195127-CHX_vs_5127; BIO2195127-CHX_vs_DMSO-CHX; BIO2195127-EtOH_vs_DMSO; BIO2195127-CHX_vs_DMSO; BIO2197294-CHX_vs_7294; BIO2197294-CHX_vs_DMSO-CHX; BIO2197294-EtOH_vs_DMSO; BIO2197294-CHX_vs_DMSO; Branaplam-CHX_vs_Branaplam; Branaplam-CHX_vs_DMSO-CHX; Branaplam-EtOH_vs_DMSO; Branaplam-CHX_vs_DMSO; DMSO-CHX__vs_DMSO; U1-WT100-CHX_vs_WT100; U1-WT100-CHX_vs_DMSO-CHX; U1-WT100-EtOH_vs_DMSO; U1-WT100-CHX_vs_DMSO; U1-WT500-CHX_vs_WT500; U1-WT500-CHX_vs_DMSO-CHX; U1-WT500-EtOH_vs_DMSO; U1-WT500-CHX_vs_DMSO; U1-WT-500-BIO2197294_vs_WT-500; U1-WT-500-BIO2197294_vs_DMSO; U1-WT-500-Branaplam_vs_WT-500; U1-WT-500-Branaplam_vs_DMSO; U1-mut1-100-CHX_vs_mut1-100; U1-mut1-100-CHX_vs_DMSO-CHX; U1-mut1-100-EtOH_vs_DMSO; U1-mut1-100-CHX_vs_DMSO; U1-mut1-500-CHX_vs_mut1-500; U1-mut1-500-CHX_vs_DMSO-CHX; U1-mut1-500-EtOH_vs_DMSO; U1-mut1-500-CHX_vs_DMSO; U1-mut2-100-CHX_vs_mut2-100; U1-mut2-100-CHX_vs_DMSO-CHX; U1-mut2-100-EtOH_vs_DMSO; U1-mut2-100-CHX_vs_DMSO; U1-mut2-500-CHX_vs_mut5-500; U1-mut2-500-CHX_vs_DMSO-CHX; U1-mut2-500-EtOH_vs_DMSO; U1-mut2-500-CHX_vs_DMSO
+converting counts to integer mode
+estimating size factors
+estimating dispersions
+gene-wise dispersion estimates: 2 workers
+mean-dispersion relationship
+final dispersion estimates, fitting model and testing: 2 workers
+        --- BIO2195127-CHX_vs_5127
+found results columns, replacing these
+                relevel
+        --- BIO2197294-CHX_vs_7294
+found results columns, replacing these
+                relevel
+        --- Branaplam-CHX_vs_Branaplam
+found results columns, replacing these
+                relevel
+        --- BIO2195127-CHX_vs_DMSO-CHX
+found results columns, replacing these
+                relevel
+        --- BIO2197294-CHX_vs_DMSO-CHX
+        --- Branaplam-CHX_vs_DMSO-CHX
+        --- U1-WT100-CHX_vs_DMSO-CHX
+        --- U1-WT500-CHX_vs_DMSO-CHX
+        --- U1-mut1-100-CHX_vs_DMSO-CHX
+        --- U1-mut1-500-CHX_vs_DMSO-CHX
+        --- U1-mut2-100-CHX_vs_DMSO-CHX
+        --- U1-mut2-500-CHX_vs_DMSO-CHX
+        --- BIO2195127-EtOH_vs_DMSO
+found results columns, replacing these
+                relevel
+        --- BIO2195127-CHX_vs_DMSO
+        --- BIO2197294-EtOH_vs_DMSO
+        --- BIO2197294-CHX_vs_DMSO
+        --- Branaplam-EtOH_vs_DMSO
+        --- Branaplam-CHX_vs_DMSO
+        --- DMSO-CHX__vs_DMSO
+        --- U1-WT100-EtOH_vs_DMSO
+        --- U1-WT100-CHX_vs_DMSO
+        --- U1-WT500-EtOH_vs_DMSO
+        --- U1-WT500-CHX_vs_DMSO
+        --- U1-WT-500-BIO2197294_vs_DMSO
+        --- U1-WT-500-Branaplam_vs_DMSO
+        --- U1-mut1-100-EtOH_vs_DMSO
+        --- U1-mut1-100-CHX_vs_DMSO
+        --- U1-mut1-500-EtOH_vs_DMSO
+        --- U1-mut1-500-CHX_vs_DMSO
+        --- U1-mut2-100-EtOH_vs_DMSO
+        --- U1-mut2-100-CHX_vs_DMSO
+        --- U1-mut2-500-EtOH_vs_DMSO
+        --- U1-mut2-500-CHX_vs_DMSO
+        --- U1-WT100-CHX_vs_WT100
+found results columns, replacing these
+                relevel
+        --- U1-WT500-CHX_vs_WT500
+found results columns, replacing these
+                relevel
+        --- U1-WT-500-BIO2197294_vs_WT-500
+        --- U1-WT-500-Branaplam_vs_WT-500
+        --- U1-mut1-100-CHX_vs_mut1-100
+found results columns, replacing these
+                relevel
+        --- U1-mut1-500-CHX_vs_mut1-500
+found results columns, replacing these
+                relevel
+        --- U1-mut2-100-CHX_vs_mut2-100
+found results columns, replacing these
+                relevel
+        --- U1-mut2-500-CHX_vs_mut5-500
+found results columns, replacing these
+                relevel
+    user   system  elapsed 
+7743.199  156.803 4719.569 
+Obtaining networks ...
+   user  system elapsed 
+ 63.787   5.262  69.220 
+saving QuickOmics object ...
+        Formating the expression data
+        Formating the DEG results
+        Formating the sample meta information
+        saving...
+=================================================
+Results are saved in /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1
+
+-----> Please visit: http://compbio.biogen.com:3838/Quickomics/?testfile=TST12145
+Please carefully review the results before publishing:
+----->'EApub' can be used to publish the project into ShinyOne project manager: http://compbio.biogen.com/shinyone
+
+Powered by the Research Data Sciences Group [fergal.casey@biogen.com;zhengyu.ouyang@biogen.com]
+
+########################### (7) ########################### 
+# /edgehpc/dept/compbio/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/EA20230306_0/TST12086.RData
+# /edgehpc/dept/compbio/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/EA20230306_0/TST12086.RData
+
+/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/2023_All_data_code_RNA3.06/sub.make_master_tbale_v2.R. # load(leafcutter_files[3]) 
+########################### (8) ########################### 
+Hi Joon.
+
+Now TDS is shifting to a new procedure without downloading the bam files.
+(That's costly ).
+
+I guess you can access DNANexus
+
+My personal link in https://platform.dnanexus.com/panx/projects/FPXy9Pj0G3b983Zv4x939bbz/data/analyses/TST12145/20230622062158
+
+I guess you need to change the part of  "/FPXy9Pj0G3b983Zv4x939bbz/" for your own identity string.
+
+Then you may select the "bam" pattern.
+
+You may see the attached png files to check the steps.
+
+(I also attached the PCA plot, the earlier version I sent to you might not be openable.)
+
+Zhen
+
+load("/edgehpc/dept/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1/TST12145.RData")
+
+
+########################### (9) ########################### 
+
+load("/edgehpc/dept/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1/TST12145.RData")
+
+
+
+########################### (0815 2nd run) ########################### ########################### () ########################### 
+########################### (1) ###########################
+
+after checking the QC and PCA data, 1 outlier in repeat1
+
+hence remove all repeat1 from "samplesheet.tsv"
+(the old one was moved to /edgehpc/dept/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230626_1)
+
+DMSO_EtOH
+DMSO_CHX
+U1_WT_500_Branaplam
+U1_WT_500_BIO2197294
+U1_WT100_EtOH
+U1_WT100_CHX
+U1_WT500_EtOH
+U1_WT500_CHX
+U1_mut1_100_EtOH
+U1_mut1_100_CHX
+U1_mut1_500_EtOH
+U1_mut1_500_CHX
+U1_mut2_100_EtOH
+U1_mut2_100_CHX
+U1_mut2_500_EtOH
+U1_mut2_500_CHX
+Branaplam_EtOH
+Branaplam_CHX
+BIO2197294_EtOH
+BIO2197294_CHX
+BIO2195127_EtOH
+BIO2195127_CHX
+DMSO_EtOH
+DMSO_CHX
+U1_WT_500_Branaplam
+U1_WT_500_BIO2197294
+
+########################### (2) ########################### 
+EAinit /edgehpc/dept/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/
+loading resource ...
+
+
+***** 2023-08-15 00:28:43 *****
+###########
+## ExpressionAnalysis: https://github.com/interactivereport/RNASequest.git
+## Pipeline Path: /mnt/depts/dept04/compbio/edge_tools/RNASequest
+## Pipeline Date: 2023-07-20 13:52:38 -0400
+## git HEAD: d47d9c27d98c4c6d3dd2777f53dc78fd4f909c73
+###########
+
+Warning messages:
+1: package 'R.oo' was built under R version 4.1.3 
+2: package 'R.methodsS3' was built under R version 4.1.3 
+3: package 'matrixStats' was built under R version 4.1.3 
+	using /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/analysis-GX9yV1Q0G3b8pKX98qy68JXK
+Create gene annotation ...
+	/edgehpc/dept/compbio/reference/DNAnexus_references/rnaseq/homo_sapiens/Human.GRCh38.v34.l1_5.ERCC/Human.GRCh38.v34.l1_5.ERCC.transcript.gene_info.csv
+getting count file by genes.estcount_table or genes.expected_count
+	/mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/genes.expected_count.tsv
+Extracting effective length by genes.effective_length
+	/mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/genes.effective_length.tsv
+getting seqQC file by combined.metrics or merged_metrics
+	/mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/merged_metrics.tsv
+Appending sequencing QC into sample meta file ...
+Creating project folder
+Create empty comparison template ...
+saving initialization ...
+==========================================
+ExpressionAnalysis project folder is created at /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230815_0
+-----> 'EAqc' can be used to identify the covariates to be adjusted as:
+		EAqc /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230815_0/config.yml
+
+
+----->'EArun' can be used to obtain the QuickOmics objects after comparison definition file is updated:
+			/mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230815_0/data/compareInfo.csv
+		EArun /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230815_0/config.yml
+
+
+-----> (additional) 'EAsplit' can be used to split into sub-project according to one column (split_meta) defined in the sample meta file.
+
+
+Powered by the Research Data Sciences Group [fergal.casey@biogen.com;zhengyu.ouyang@biogen.com]
+
+########################### (2) ########################### 
+loading resource ...
+
+
+***** 2023-08-15 00:31:08 *****
+###########
+## ExpressionAnalysis: https://github.com/interactivereport/RNASequest.git
+## Pipeline Path: /mnt/depts/dept04/compbio/edge_tools/RNASequest
+## Pipeline Date: 2023-07-20 13:52:38 -0400
+## git HEAD: d47d9c27d98c4c6d3dd2777f53dc78fd4f909c73
+###########
+
+Warning messages:
+1: package 'R.oo' was built under R version 4.1.3 
+2: package 'R.methodsS3' was built under R version 4.1.3 
+3: package 'matrixStats' was built under R version 4.1.3 
+reading sample meta
+checking against config file
+reading sample counts
+	Filtering genes (41592) with minimal counts (>=) 1 in at least (>=) 1 samples
+reading effective length
+		The nominal length of following 602 genes will be used:
+		MIR425, MIR210, RNU6-834P, RNU6-661P, RNA5SP183, AL354797.1, RNU5F-1, RNY4P19, SNORD9, AL360219.1, AC096632.1, AC105267.1, RNA5SP477, AC021105.1, AC121247.1, RNU6-37P, RNU5A-1, RNU6-228P, RNU6-562P, RNA5SP124, SNORD33, RNU6-1266P, SNORD16, AC008121.1, SNORD36A, SNORD104, RNU6-1290P, RNU6-942P, RNA5SP452, AP003499.1, RNY1P16, AP000967.1, VTRNA1-1, RNU6-986P, RNY4P9, SNORD68, AC021443.1, AC096649.1, AC068831.1, RNU6-23P, RNU5B-1, AC009131.1, RNU5D-1, AL607035.1, RNU6-238P, AC009309.1, RNU6-1147P, RNU6-529P, RNU6-97P, RNA5SP199, RNU6-527P, RNA5SP483, AL034417.1, RNU6-833P, RNU6-1099P, RNA5SP74, AC090527.1, AC078818.1, RNU6-112P, AL135938.1, AL512604.1, RNU6-1209P, SNORD35B, RNU6-137P, AC144536.1, RNA5SP514, AC006116.1, AC100814.1, AL355490.1, RNA5SP68, SNORD8, AL445222.1, RNU6-82P, AC211429.1, SNORD46, AL138751.1, AC087884.1, RNU5A-8P, RNA5SP493, RNY1, RNU6-11P, RNU6-353P, RNU6-853P, AC089999.2, AC026347.1, RNA5S9, RNU6-1251P, SNORD14B, AC006960.1, AL772161.1, RNY4P7, AL356299.1, RNU6-312P, RNA5SP513, AL662899.2, AL118556.1, RNU6-593P, AL732366.1, RNA5SP84, RNA5SP505, RNU6-7, RNA5SP479, RNU6-34P, SNORD52, RNA5SP488, SNORD48, RNU6-702P, AL732366.2, AC005071.1, AL662797.1, RNU6-1240P, SNORD38A, AC012363.1, VTRNA1-2, RNY4P3, RNU6-742P, RNU6-1327P, AP005061.1, SNORD14C, AL031662.1, RNA5SP22, RNY3P12, SNORD6, RNU6-8, RNY3, RNU6-652P, AC062037.1, AP003357.1, SNORD82, AC010240.1, RNU5E-6P, SNORD34, AL590677.1, RNU6-805P, VTRNA1-3, RNU6-395P, AC116366.1, RNU6-431P, SNORD58A, RNU6-979P, RNU6-1, AC006583.1, Z99297.1, RNU6-945P, SNORD21, AC106802.1, RNU6-26P, AC004461.1, SNORD101, AL391262.1, SNORD37, AC004707.1, RNU6-20P, RNU6-767P, RNU6-398P, AC092610.1, RNU6-36P, AC027290.1, RNU6-80P, RNU6-4P, RNU6-1201P, AC012358.2, RNU6-5P, SNORD63, AL451074.1, RNU6-574P, RNU6-611P, AC016773.1, RNU6-975P, AP001453.1, AP001011.1, RNU6-3P, RNU6-171P, RNU6-22P, RNU6-166P, RNU6-31P, RNA5SP187, RNU6-106P, AC079601.1, AC093867.1, RNU6-1340P, RNU6-1157P, AC137767.1, AC106897.1, RNU6-125P, SNORD45A, RNU6-15P, RNU6-30P, SNORD7, RNU6-146P, AL133238.1, RNU6-2, RNU6-925P, AC091633.1, AC048351.1, AL160163.1, AC012442.1, AC027237.2, AP000704.1, RNU6-1311P, RNU6-9, RNU6-1237P, RNU6-33P, MIR25, MIR641, MIR621, MIR659, MIR573, MIR563, MIR135A1, MIR557, MIR320A, SNORD12C, MT-TL1, SNORD83B, SNORD83A, SNORD105, SNORD41, MT-TF, MT-TV, MT-TI, MT-TQ, MT-TM, MT-TA, MT-TN, MT-TC, MT-TY, MT-TS1, MT-TK, MT-TH, MT-TS2, MT-TL2, MT-TE, MT-TT, MT-TP, MIR196A1, MIR454, MIR765, MIR762, SNORD67, SNORD66, RNU6-298P, RNU6-1321P, RNA5SP244, AL445164.1, SNORD89, AL135998.2, SNORD70B, AL359759.1, RNU6-244P, RNU6-1242P, RNU6-817P, SNORD90, SNORD69, RNU6-918P, RNU6-466P, SNORD70, AC104794.1, AL355309.1, SNORD110, AL513534.2, MIR1184-2, MIR1262, RNU6ATAC27P, MIR1285-2, SNORD88A, RNU6ATAC18P, SNORD88B, SNORD100, MIR1184-1, SNORD99, RNU6ATAC10P, MIR1184-3, SNORD93, MIR1183, MIR1282, SNORD23, RNU6-1165P, AC007540.1, RNA5SP407, RNU6-1156P, SNORD19C, RNA5SP237, SNORD12B, AC015563.1, AC007405.1, RNU6-519P, RNU6-1025P, AC063943.1, RNU2-42P, RNU6-920P, AC080112.1, RNU6-564P, RNU6-172P, AC106033.1, RNU6-130P, RNU5E-9P, RNU6-293P, RNU6-1054P, AC055855.1, AL359260.1, AC006210.1, AC006548.1, RPL35AP4, AC137499.1, AC079150.1, SNORD57, RPL41P1, AC096531.1, AL162726.3, AC244023.1, SNORD56, AC123900.1, SNORD62B, AP1B1P2, AL021068.1, SNORD62A, AC113174.1, AL627311.1, GAGE12B, SNORD121B, SNORD11, AC122179.1, SNORD13P1, SNORD4A, SNORD42A, RNU6-625P, AC096757.1, AC217773.1, SNORD124, SNORD121A, AC004912.1, SNORD13, AC069200.2, SNORD127, AC068299.1, SNORD125, AC010327.1, SNORD5, AC112771.1, AC010598.1, RNU6-998P, AC004849.1, RNU6-1053P, RNA5SP385, RNA5SP217, RNU6-377P, RNU6-322P, RNA5SP162, RNU7-75P, RNU6-513P, RNU6-1143P, AC022211.1, RNY3P15, RNU6-313P, AC090227.1, RNU6-1206P, AC008393.2, RNY4, AC022916.1, AC005722.2, RNU6-118P, AL121924.2, RNU6-358P, RNA5SP395, RNU6-638P, RNU6-1004P, RNU6-100P, AC115088.1, RNA5SP168, RNU6-1016P, RNU6-914P, AC009509.1, RNU6-807P, AL590413.1, RNU6-122P, RNU6-678P, RNU6-1136P, RNU7-111P, AC078814.1, RNA5SP392, RNU6-577P, AC005037.2, RNU6-388P, AC061965.1, AC021443.2, RNU6-548P, RNU6-762P, AL139099.1, RNU6-1220P, RNA5SP340, AC016959.1, RNU6-902P, RNU6-988P, RNU6-323P, AC024995.1, AP001458.1, RNY1P9, RPL41P5, AC068831.3, MIR3936, MIR3161, SNORD43, MIR4635, AC008670.1, MIR4737, CR392039.1, SNORD55, SNORD95, MIR4296, MIR5094, SNORD92, MIR3195, MIR4263, MIR5188, MIR3682, SNORD53B, MIR4292, AC130289.1, MIR4477B, MIR4690, MIR3176, MIR5091, MIR4428, MIR4273, MIR4512, MIR4766, MIR3661, AC060780.3, AL162413.1, AL356157.2, AL096840.2, AC242498.1, RNU6-94P, SNORD11B, SNORD58B, AC037487.3, SNORD14A, RNU6-6P, AC103810.6, AC103810.7, SNORD96A, MIR6129, AL137060.2, AC092670.1, MIR6126, MIR6765, AP003499.3, AC004080.7, AP000446.2, SNORD1C, AL021937.5, AC004079.1, AL132655.4, MIR6832, SNORD28, AL021937.6, MIR378J, AL353804.4, AL049766.1, AC004079.2, MIR6750, AL133467.5, SNORD25, SNORD50B, AC211486.7, AC243994.1, AP003499.4, MIR6839, MIR6505, AC084368.1, MIR6720, AL021155.1, MIR6807, AC211486.8, SNORD27, AC004542.4, AL356356.2, AC211476.9, AC004080.8, AL445423.2, AL033538.2, MIR7111, AC092375.3, AL132655.6, AL353804.5, SNORD26, AL132655.7, RNA5SP530, SNORD49B, SNORD49A, FP671120.2, SNORD65, AC091179.4, AC106873.7, MIR7845, AC009812.5, AL627171.2, MIR6739, AL049766.3, AC012531.7, AL139099.4, AC117415.2, AL353804.7, AP000944.3, AC108065.2, AP000769.5, AC025188.3, AC084123.1, MIR6781, AC002542.4, MIR7161, MIR6080, AC114498.2, AC006386.2, AC012005.1, AC090498.1, AC006435.5, AC002059.2, AC009065.10, MIR3651, AC007383.4, MIR548D1, MIR941-1, MIR4256, FO624990.1, MIR3662, AL451062.3, MIR1244-3, MIR1244-4, MIR1244-2, AP003392.14, MIR555, MIR196B, MIR6850, MIR1182, MIR3198-2, MIR639, MIR378I, MIR4721, MIR3911, MIR3916, MIR6132, MIR3658, MIR3917, MIR3610, MIR1248, MIR4442, MIR492, MIR6084, MIR1281, MIR4315-1, MIR6834, MIR5703, MIR611, MIR4707, MIR198, MIR4700, MIR922, MIR4784, MIR3940, MIR4523, MIR4315-2, MIR7-1, MIR3615, MIR671, MIR658, MIR1909, MIR6516, MIR4321, MIR4800, MIR7113, MIR3655, MIR5047, MIR1244-1, MIR147B, MIR5001, MIR663A, MIR7110, MIR4724, MIR4647, MIR4691, MIR2110, MIR1236, MIR1304, MIR1306, MIR6721, MIR4680, MIR564, MIR4687, MIR4517, MIR3614, MIR3064, MIR7705, AP000553.4, AC135721.2, AC022506.1, AL669831.6, AC026740.2, AL359092.3, AC015871.7, AC007599.3
+reading sequence QC
+Finished TPM estimation!
+plotting sequencing QC @/mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230815_0/sequenceQC.pdf
+Please check output files at: /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230815_0 
+-----> PC analysis without covariate adjusted:
+	/mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230815_0/notAdjusted
+Warning message:
+In plotPCanlaysis(config, D$logTPM, D$meta, estC = D$counts, effL = D$effLength) :
+  < covariates_adjust is NOT set in the config file, no covariate was adjusted! >
+==========================================
+----->'EArun' can be used to obtain the QuickOmics object after necessary 'covariates_adjust' is set and comparison definition file is filled:
+			/mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230815_0/data/compareInfo.csv
+		EArun /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230815_0/config.yml
+
+
+-----> (additional) 'EAsplit' can be used to split into sub-project according to one column (split_meta) defined in the sample meta file.
+
+Powered by the Research Data Sciences Group [fergal.casey@biogen.com;zhengyu.ouyang@biogen.com]
+
+########################### (3) ###########################
+copy the "compareInfo.csv" from the 1st 4-vs-4 RNAseq QuickOmics
+and add all comparison Joon/Dann/Zhen added
+
+########################### () ###########################
+EArun /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230815_0/config.yml
+loading resource ...
+
+
+***** 2023-08-15 02:27:26 *****
+###########
+## ExpressionAnalysis: https://github.com/interactivereport/RNASequest.git
+## Pipeline Path: /mnt/depts/dept04/compbio/edge_tools/RNASequest
+## Pipeline Date: 2023-07-20 13:52:38 -0400
+## git HEAD: d47d9c27d98c4c6d3dd2777f53dc78fd4f909c73
+###########
+
+Warning messages:
+1: package 'R.oo' was built under R version 4.1.3 
+2: package 'R.methodsS3' was built under R version 4.1.3 
+3: package 'matrixStats' was built under R version 4.1.3 
+Warning message:
+In readLines(config[[one]]) :
+  incomplete final line found on '/mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230815_0/data/compareInfo.csv'
+reading sample meta
+checking against config file
+	Checking model for BIO2195127-CHX_vs_5127
+	Checking model for BIO2195127-CHX_vs_DMSO-CHX
+	Checking model for BIO2195127-EtOH_vs_DMSO
+	Checking model for BIO2195127-CHX_vs_DMSO
+	Checking model for BIO2195127-EtOH_vs_U1_WT100_EtOH
+	Checking model for BIO2195127-EtOH_vs_U1_WT500_EtOH
+	Checking model for BIO2195127-EtOH_vs_U1_U1_mut1_100_EtOH
+	Checking model for BIO2195127-EtOH_vs_U1_U1_mut1_500_EtOH
+	Checking model for BIO2195127-EtOH_vs_U1_U1_mut2_100_EtOH
+	Checking model for BIO2195127-EtOH_vs_U1_U1_mut2_500_EtOH
+	Checking model for BIO2195127-CHX_vs_U1_WT100_CHX
+	Checking model for BIO2195127-CHX_vs_U1_WT500_CHX
+	Checking model for BIO2195127-CHX_vs_U1_U1_mut1_100_CHX
+	Checking model for BIO2195127-CHX_vs_U1_U1_mut1_500_CHX
+	Checking model for BIO2195127-CHX_vs_U1_U1_mut2_100_CHX
+	Checking model for BIO2195127-CHX_vs_U1_U1_mut2_500_CHX
+	Checking model for BIO2197294-CHX_vs_7294
+	Checking model for BIO2197294-CHX_vs_DMSO-CHX
+	Checking model for BIO2197294-EtOH_vs_DMSO
+	Checking model for BIO2197294-CHX_vs_DMSO
+	Checking model for BIO2197294-EtOH_vs_U1_WT100_EtOH
+	Checking model for BIO2197294-EtOH_vs_U1_WT500_EtOH
+	Checking model for BIO2197294-EtOH_vs_U1_U1_mut1_100_EtOH
+	Checking model for BIO2197294-EtOH_vs_U1_U1_mut1_500_EtOH
+	Checking model for BIO2197294-EtOH_vs_U1_U1_mut2_100_EtOH
+	Checking model for BIO2197294-EtOH_vs_U1_U1_mut2_500_EtOH
+	Checking model for BIO2197294-CHX_vs_U1_WT100_CHX
+	Checking model for BIO2197294-CHX_vs_U1_WT500_CHX
+	Checking model for BIO2197294-CHX_vs_U1_U1_mut1_100_CHX
+	Checking model for BIO2197294-CHX_vs_U1_U1_mut1_500_CHX
+	Checking model for BIO2197294-CHX_vs_U1_U1_mut2_100_CHX
+	Checking model for BIO2197294-CHX_vs_U1_U1_mut2_500_CHX
+	Checking model for Branaplam-CHX_vs_Branaplam
+	Checking model for Branaplam-CHX_vs_DMSO-CHX
+	Checking model for Branaplam-EtOH_vs_DMSO
+	Checking model for Branaplam-CHX_vs_DMSO
+	Checking model for Branaplam-EtOH_vs_U1_WT100_EtOH
+	Checking model for Branaplam-EtOH_vs_U1_WT500_EtOH
+	Checking model for Branaplam-EtOH_vs_U1_U1_mut1_100_EtOH
+	Checking model for Branaplam-EtOH_vs_U1_U1_mut1_500_EtOH
+	Checking model for Branaplam-EtOH_vs_U1_U1_mut2_100_EtOH
+	Checking model for Branaplam-EtOH_vs_U1_U1_mut2_500_EtOH
+	Checking model for Branaplam-CHX_vs_U1_WT100_CHX
+	Checking model for Branaplam-CHX_vs_U1_WT500_CHX
+	Checking model for Branaplam-CHX_vs_U1_U1_mut1_100_CHX
+	Checking model for Branaplam-CHX_vs_U1_U1_mut1_500_CHX
+	Checking model for Branaplam-CHX_vs_U1_U1_mut2_100_CHX
+	Checking model for Branaplam-CHX_vs_U1_U1_mut2_500_CHX
+	Checking model for DMSO-CHX__vs_DMSO
+	Checking model for U1-WT100-CHX_vs_WT100
+	Checking model for U1-WT100-CHX_vs_DMSO-CHX
+	Checking model for U1-WT100-EtOH_vs_DMSO
+	Checking model for U1-WT100-CHX_vs_DMSO
+	Checking model for U1-WT500-CHX_vs_WT500
+	Checking model for U1-WT500-CHX_vs_DMSO-CHX
+	Checking model for U1-WT500-EtOH_vs_DMSO
+	Checking model for U1-WT500-CHX_vs_DMSO
+	Checking model for U1-WT-500-BIO2197294_vs_DMSO
+	Checking model for U1-WT-500-BIO2197294_vs_WT-500
+	Checking model for U1-WT-500-Branaplam_vs_DMSO
+	Checking model for U1-WT-500-Branaplam_vs_WT-500
+	Checking model for U1-mut1-100-CHX_vs_mut1-100
+	Checking model for U1-mut1-100-CHX_vs_DMSO-CHX
+	Checking model for U1-mut1-100-EtOH_vs_DMSO
+	Checking model for U1-mut1-100-EtOH_vs_WT_EtOH
+	Checking model for U1-mut1-100-CHX_vs_WT_EtOH
+	Checking model for U1-mut1-100-CHX_vs_WT_CHX
+	Checking model for U1-mut1-100-CHX_vs_DMSO
+	Checking model for U1-mut1-500-CHX_vs_mut1-500
+	Checking model for U1-mut1-500-CHX_vs_DMSO-CHX
+	Checking model for U1-mut1-500-EtOH_vs_DMSO
+	Checking model for U1-mut1-500-EtOH_vs_WT_EtOH
+	Checking model for U1-mut1-500-CHX_vs_WT_EtOH
+	Checking model for U1-mut1-500-CHX_vs_WT_CHX
+	Checking model for U1-mut1-500-CHX_vs_DMSO
+	Checking model for U1-mut2-100-CHX_vs_mut2-100
+	Checking model for U1-mut2-100-CHX_vs_DMSO-CHX
+	Checking model for U1-mut2-100-EtOH_vs_DMSO
+	Checking model for U1-mut2-100-EtOH_vs_WT_EtOH
+	Checking model for U1-mut2-100-CHX_vs_WT_EtOH
+	Checking model for U1-mut2-100-CHX_vs_WT_CHX
+	Checking model for U1-mut2-100-CHX_vs_DMSO
+	Checking model for U1-mut2-500-CHX_vs_mut5-500
+	Checking model for U1-mut2-500-CHX_vs_DMSO-CHX
+	Checking model for U1-mut2-500-EtOH_vs_DMSO
+	Checking model for U1-mut2-500-EtOH_vs_WT_EtOH
+	Checking model for U1-mut2-500-CHX_vs_WT_EtOH
+	Checking model for U1-mut2-500-CHX_vs_WT_CHX
+	Checking model for U1-mut2-500-CHX_vs_DMSO
+reading sample counts
+	Filtering genes (41592) with minimal counts (>=) 1 in at least (>=) 1 samples
+reading effective length
+		The nominal length of following 602 genes will be used:
+		MIR425, MIR210, RNU6-834P, RNU6-661P, RNA5SP183, AL354797.1, RNU5F-1, RNY4P19, SNORD9, AL360219.1, AC096632.1, AC105267.1, RNA5SP477, AC021105.1, AC121247.1, RNU6-37P, RNU5A-1, RNU6-228P, RNU6-562P, RNA5SP124, SNORD33, RNU6-1266P, SNORD16, AC008121.1, SNORD36A, SNORD104, RNU6-1290P, RNU6-942P, RNA5SP452, AP003499.1, RNY1P16, AP000967.1, VTRNA1-1, RNU6-986P, RNY4P9, SNORD68, AC021443.1, AC096649.1, AC068831.1, RNU6-23P, RNU5B-1, AC009131.1, RNU5D-1, AL607035.1, RNU6-238P, AC009309.1, RNU6-1147P, RNU6-529P, RNU6-97P, RNA5SP199, RNU6-527P, RNA5SP483, AL034417.1, RNU6-833P, RNU6-1099P, RNA5SP74, AC090527.1, AC078818.1, RNU6-112P, AL135938.1, AL512604.1, RNU6-1209P, SNORD35B, RNU6-137P, AC144536.1, RNA5SP514, AC006116.1, AC100814.1, AL355490.1, RNA5SP68, SNORD8, AL445222.1, RNU6-82P, AC211429.1, SNORD46, AL138751.1, AC087884.1, RNU5A-8P, RNA5SP493, RNY1, RNU6-11P, RNU6-353P, RNU6-853P, AC089999.2, AC026347.1, RNA5S9, RNU6-1251P, SNORD14B, AC006960.1, AL772161.1, RNY4P7, AL356299.1, RNU6-312P, RNA5SP513, AL662899.2, AL118556.1, RNU6-593P, AL732366.1, RNA5SP84, RNA5SP505, RNU6-7, RNA5SP479, RNU6-34P, SNORD52, RNA5SP488, SNORD48, RNU6-702P, AL732366.2, AC005071.1, AL662797.1, RNU6-1240P, SNORD38A, AC012363.1, VTRNA1-2, RNY4P3, RNU6-742P, RNU6-1327P, AP005061.1, SNORD14C, AL031662.1, RNA5SP22, RNY3P12, SNORD6, RNU6-8, RNY3, RNU6-652P, AC062037.1, AP003357.1, SNORD82, AC010240.1, RNU5E-6P, SNORD34, AL590677.1, RNU6-805P, VTRNA1-3, RNU6-395P, AC116366.1, RNU6-431P, SNORD58A, RNU6-979P, RNU6-1, AC006583.1, Z99297.1, RNU6-945P, SNORD21, AC106802.1, RNU6-26P, AC004461.1, SNORD101, AL391262.1, SNORD37, AC004707.1, RNU6-20P, RNU6-767P, RNU6-398P, AC092610.1, RNU6-36P, AC027290.1, RNU6-80P, RNU6-4P, RNU6-1201P, AC012358.2, RNU6-5P, SNORD63, AL451074.1, RNU6-574P, RNU6-611P, AC016773.1, RNU6-975P, AP001453.1, AP001011.1, RNU6-3P, RNU6-171P, RNU6-22P, RNU6-166P, RNU6-31P, RNA5SP187, RNU6-106P, AC079601.1, AC093867.1, RNU6-1340P, RNU6-1157P, AC137767.1, AC106897.1, RNU6-125P, SNORD45A, RNU6-15P, RNU6-30P, SNORD7, RNU6-146P, AL133238.1, RNU6-2, RNU6-925P, AC091633.1, AC048351.1, AL160163.1, AC012442.1, AC027237.2, AP000704.1, RNU6-1311P, RNU6-9, RNU6-1237P, RNU6-33P, MIR25, MIR641, MIR621, MIR659, MIR573, MIR563, MIR135A1, MIR557, MIR320A, SNORD12C, MT-TL1, SNORD83B, SNORD83A, SNORD105, SNORD41, MT-TF, MT-TV, MT-TI, MT-TQ, MT-TM, MT-TA, MT-TN, MT-TC, MT-TY, MT-TS1, MT-TK, MT-TH, MT-TS2, MT-TL2, MT-TE, MT-TT, MT-TP, MIR196A1, MIR454, MIR765, MIR762, SNORD67, SNORD66, RNU6-298P, RNU6-1321P, RNA5SP244, AL445164.1, SNORD89, AL135998.2, SNORD70B, AL359759.1, RNU6-244P, RNU6-1242P, RNU6-817P, SNORD90, SNORD69, RNU6-918P, RNU6-466P, SNORD70, AC104794.1, AL355309.1, SNORD110, AL513534.2, MIR1184-2, MIR1262, RNU6ATAC27P, MIR1285-2, SNORD88A, RNU6ATAC18P, SNORD88B, SNORD100, MIR1184-1, SNORD99, RNU6ATAC10P, MIR1184-3, SNORD93, MIR1183, MIR1282, SNORD23, RNU6-1165P, AC007540.1, RNA5SP407, RNU6-1156P, SNORD19C, RNA5SP237, SNORD12B, AC015563.1, AC007405.1, RNU6-519P, RNU6-1025P, AC063943.1, RNU2-42P, RNU6-920P, AC080112.1, RNU6-564P, RNU6-172P, AC106033.1, RNU6-130P, RNU5E-9P, RNU6-293P, RNU6-1054P, AC055855.1, AL359260.1, AC006210.1, AC006548.1, RPL35AP4, AC137499.1, AC079150.1, SNORD57, RPL41P1, AC096531.1, AL162726.3, AC244023.1, SNORD56, AC123900.1, SNORD62B, AP1B1P2, AL021068.1, SNORD62A, AC113174.1, AL627311.1, GAGE12B, SNORD121B, SNORD11, AC122179.1, SNORD13P1, SNORD4A, SNORD42A, RNU6-625P, AC096757.1, AC217773.1, SNORD124, SNORD121A, AC004912.1, SNORD13, AC069200.2, SNORD127, AC068299.1, SNORD125, AC010327.1, SNORD5, AC112771.1, AC010598.1, RNU6-998P, AC004849.1, RNU6-1053P, RNA5SP385, RNA5SP217, RNU6-377P, RNU6-322P, RNA5SP162, RNU7-75P, RNU6-513P, RNU6-1143P, AC022211.1, RNY3P15, RNU6-313P, AC090227.1, RNU6-1206P, AC008393.2, RNY4, AC022916.1, AC005722.2, RNU6-118P, AL121924.2, RNU6-358P, RNA5SP395, RNU6-638P, RNU6-1004P, RNU6-100P, AC115088.1, RNA5SP168, RNU6-1016P, RNU6-914P, AC009509.1, RNU6-807P, AL590413.1, RNU6-122P, RNU6-678P, RNU6-1136P, RNU7-111P, AC078814.1, RNA5SP392, RNU6-577P, AC005037.2, RNU6-388P, AC061965.1, AC021443.2, RNU6-548P, RNU6-762P, AL139099.1, RNU6-1220P, RNA5SP340, AC016959.1, RNU6-902P, RNU6-988P, RNU6-323P, AC024995.1, AP001458.1, RNY1P9, RPL41P5, AC068831.3, MIR3936, MIR3161, SNORD43, MIR4635, AC008670.1, MIR4737, CR392039.1, SNORD55, SNORD95, MIR4296, MIR5094, SNORD92, MIR3195, MIR4263, MIR5188, MIR3682, SNORD53B, MIR4292, AC130289.1, MIR4477B, MIR4690, MIR3176, MIR5091, MIR4428, MIR4273, MIR4512, MIR4766, MIR3661, AC060780.3, AL162413.1, AL356157.2, AL096840.2, AC242498.1, RNU6-94P, SNORD11B, SNORD58B, AC037487.3, SNORD14A, RNU6-6P, AC103810.6, AC103810.7, SNORD96A, MIR6129, AL137060.2, AC092670.1, MIR6126, MIR6765, AP003499.3, AC004080.7, AP000446.2, SNORD1C, AL021937.5, AC004079.1, AL132655.4, MIR6832, SNORD28, AL021937.6, MIR378J, AL353804.4, AL049766.1, AC004079.2, MIR6750, AL133467.5, SNORD25, SNORD50B, AC211486.7, AC243994.1, AP003499.4, MIR6839, MIR6505, AC084368.1, MIR6720, AL021155.1, MIR6807, AC211486.8, SNORD27, AC004542.4, AL356356.2, AC211476.9, AC004080.8, AL445423.2, AL033538.2, MIR7111, AC092375.3, AL132655.6, AL353804.5, SNORD26, AL132655.7, RNA5SP530, SNORD49B, SNORD49A, FP671120.2, SNORD65, AC091179.4, AC106873.7, MIR7845, AC009812.5, AL627171.2, MIR6739, AL049766.3, AC012531.7, AL139099.4, AC117415.2, AL353804.7, AP000944.3, AC108065.2, AP000769.5, AC025188.3, AC084123.1, MIR6781, AC002542.4, MIR7161, MIR6080, AC114498.2, AC006386.2, AC012005.1, AC090498.1, AC006435.5, AC002059.2, AC009065.10, MIR3651, AC007383.4, MIR548D1, MIR941-1, MIR4256, FO624990.1, MIR3662, AL451062.3, MIR1244-3, MIR1244-4, MIR1244-2, AP003392.14, MIR555, MIR196B, MIR6850, MIR1182, MIR3198-2, MIR639, MIR378I, MIR4721, MIR3911, MIR3916, MIR6132, MIR3658, MIR3917, MIR3610, MIR1248, MIR4442, MIR492, MIR6084, MIR1281, MIR4315-1, MIR6834, MIR5703, MIR611, MIR4707, MIR198, MIR4700, MIR922, MIR4784, MIR3940, MIR4523, MIR4315-2, MIR7-1, MIR3615, MIR671, MIR658, MIR1909, MIR6516, MIR4321, MIR4800, MIR7113, MIR3655, MIR5047, MIR1244-1, MIR147B, MIR5001, MIR663A, MIR7110, MIR4724, MIR4647, MIR4691, MIR2110, MIR1236, MIR1304, MIR1306, MIR6721, MIR4680, MIR564, MIR4687, MIR4517, MIR3614, MIR3064, MIR7705, AP000553.4, AC135721.2, AC022506.1, AL669831.6, AC026740.2, AL359092.3, AC015871.7, AC007599.3
+reading sequence QC
+Finished TPM estimation!
+Plotting correlation between covarites and comparison groups:
+	Well_Row, Well_Column, RIN v.s. Treatment
+	Treatment .vs. Well_Row
+	Treatment .vs. Well_Column
+	Treatment .vs. RIN
+====== Starting DE analysis ...
+serial DEG process ...
+Comparison for BIO2195127-CHX_vs_5127; BIO2195127-CHX_vs_DMSO-CHX; BIO2195127-EtOH_vs_DMSO; BIO2195127-CHX_vs_DMSO; BIO2195127-EtOH_vs_U1_WT100_EtOH; BIO2195127-EtOH_vs_U1_WT500_EtOH; BIO2195127-EtOH_vs_U1_U1_mut1_100_EtOH; BIO2195127-EtOH_vs_U1_U1_mut1_500_EtOH; BIO2195127-EtOH_vs_U1_U1_mut2_100_EtOH; BIO2195127-EtOH_vs_U1_U1_mut2_500_EtOH; BIO2195127-CHX_vs_U1_WT100_CHX; BIO2195127-CHX_vs_U1_WT500_CHX; BIO2195127-CHX_vs_U1_U1_mut1_100_CHX; BIO2195127-CHX_vs_U1_U1_mut1_500_CHX; BIO2195127-CHX_vs_U1_U1_mut2_100_CHX; BIO2195127-CHX_vs_U1_U1_mut2_500_CHX; BIO2197294-CHX_vs_7294; BIO2197294-CHX_vs_DMSO-CHX; BIO2197294-EtOH_vs_DMSO; BIO2197294-CHX_vs_DMSO; BIO2197294-EtOH_vs_U1_WT100_EtOH; BIO2197294-EtOH_vs_U1_WT500_EtOH; BIO2197294-EtOH_vs_U1_U1_mut1_100_EtOH; BIO2197294-EtOH_vs_U1_U1_mut1_500_EtOH; BIO2197294-EtOH_vs_U1_U1_mut2_100_EtOH; BIO2197294-EtOH_vs_U1_U1_mut2_500_EtOH; BIO2197294-CHX_vs_U1_WT100_CHX; BIO2197294-CHX_vs_U1_WT500_CHX; BIO2197294-CHX_vs_U1_U1_mut1_100_CHX; BIO2197294-CHX_vs_U1_U1_mut1_500_CHX; BIO2197294-CHX_vs_U1_U1_mut2_100_CHX; BIO2197294-CHX_vs_U1_U1_mut2_500_CHX; Branaplam-CHX_vs_Branaplam; Branaplam-CHX_vs_DMSO-CHX; Branaplam-EtOH_vs_DMSO; Branaplam-CHX_vs_DMSO; Branaplam-EtOH_vs_U1_WT100_EtOH; Branaplam-EtOH_vs_U1_WT500_EtOH; Branaplam-EtOH_vs_U1_U1_mut1_100_EtOH; Branaplam-EtOH_vs_U1_U1_mut1_500_EtOH; Branaplam-EtOH_vs_U1_U1_mut2_100_EtOH; Branaplam-EtOH_vs_U1_U1_mut2_500_EtOH; Branaplam-CHX_vs_U1_WT100_CHX; Branaplam-CHX_vs_U1_WT500_CHX; Branaplam-CHX_vs_U1_U1_mut1_100_CHX; Branaplam-CHX_vs_U1_U1_mut1_500_CHX; Branaplam-CHX_vs_U1_U1_mut2_100_CHX; Branaplam-CHX_vs_U1_U1_mut2_500_CHX; DMSO-CHX__vs_DMSO; U1-WT100-CHX_vs_WT100; U1-WT100-CHX_vs_DMSO-CHX; U1-WT100-EtOH_vs_DMSO; U1-WT100-CHX_vs_DMSO; U1-WT500-CHX_vs_WT500; U1-WT500-CHX_vs_DMSO-CHX; U1-WT500-EtOH_vs_DMSO; U1-WT500-CHX_vs_DMSO; U1-WT-500-BIO2197294_vs_DMSO; U1-WT-500-BIO2197294_vs_WT-500; U1-WT-500-Branaplam_vs_DMSO; U1-WT-500-Branaplam_vs_WT-500; U1-mut1-100-CHX_vs_mut1-100; U1-mut1-100-CHX_vs_DMSO-CHX; U1-mut1-100-EtOH_vs_DMSO; U1-mut1-100-EtOH_vs_WT_EtOH; U1-mut1-100-CHX_vs_WT_EtOH; U1-mut1-100-CHX_vs_WT_CHX; U1-mut1-100-CHX_vs_DMSO; U1-mut1-500-CHX_vs_mut1-500; U1-mut1-500-CHX_vs_DMSO-CHX; U1-mut1-500-EtOH_vs_DMSO; U1-mut1-500-EtOH_vs_WT_EtOH; U1-mut1-500-CHX_vs_WT_EtOH; U1-mut1-500-CHX_vs_WT_CHX; U1-mut1-500-CHX_vs_DMSO; U1-mut2-100-CHX_vs_mut2-100; U1-mut2-100-CHX_vs_DMSO-CHX; U1-mut2-100-EtOH_vs_DMSO; U1-mut2-100-EtOH_vs_WT_EtOH; U1-mut2-100-CHX_vs_WT_EtOH; U1-mut2-100-CHX_vs_WT_CHX; U1-mut2-100-CHX_vs_DMSO; U1-mut2-500-CHX_vs_mut5-500; U1-mut2-500-CHX_vs_DMSO-CHX; U1-mut2-500-EtOH_vs_DMSO; U1-mut2-500-EtOH_vs_WT_EtOH; U1-mut2-500-CHX_vs_WT_EtOH; U1-mut2-500-CHX_vs_WT_CHX; U1-mut2-500-CHX_vs_DMSO
+converting counts to integer mode
+estimating size factors
+estimating dispersions
+gene-wise dispersion estimates: 2 workers
+mean-dispersion relationship
+final dispersion estimates, fitting model and testing: 2 workers
+	--- BIO2195127-CHX_vs_5127
+found results columns, replacing these
+		relevel
+	--- BIO2197294-CHX_vs_7294
+found results columns, replacing these
+		relevel	--- BIO2197294-CHX_vs_7294
+found results columns, replacing these
+		relevel
+	--- Branaplam-CHX_vs_Branaplam
+found results columns, replacing these
+		relevel
+	--- BIO2195127-CHX_vs_DMSO-CHX
+found results columns, replacing these
+		relevel
+	--- BIO2197294-CHX_vs_DMSO-CHX
+	--- Branaplam-CHX_vs_DMSO-CHX
+	--- U1-WT100-CHX_vs_DMSO-CHX
+	--- U1-WT500-CHX_vs_DMSO-CHX
+	--- U1-mut1-100-CHX_vs_DMSO-CHX
+	--- U1-mut1-500-CHX_vs_DMSO-CHX
+	--- U1-mut2-100-CHX_vs_DMSO-CHX
+	--- U1-mut2-500-CHX_vs_DMSO-CHX
+	--- BIO2195127-EtOH_vs_DMSO
+found results columns, replacing these
+		relevel
+	--- BIO2195127-CHX_vs_DMSO
+	--- BIO2197294-EtOH_vs_DMSO
+	--- BIO2197294-CHX_vs_DMSO
+	--- Branaplam-EtOH_vs_DMSO
+	--- Branaplam-CHX_vs_DMSO
+--- DMSO-CHX__vs_DMSO
+	--- U1-WT100-EtOH_vs_DMSO
+	--- U1-WT100-CHX_vs_DMSO
+	--- U1-WT500-EtOH_vs_DMSO
+	--- U1-WT500-CHX_vs_DMSO
+	--- U1-WT-500-BIO2197294_vs_DMSO
+	--- U1-WT-500-Branaplam_vs_DMSO
+	--- U1-mut1-100-EtOH_vs_DMSO
+	--- U1-mut1-100-CHX_vs_DMSO
+	--- U1-mut1-500-EtOH_vs_DMSO
+	--- U1-mut1-500-CHX_vs_DMSO
+	--- U1-mut2-100-EtOH_vs_DMSO
+	--- U1-mut2-100-CHX_vs_DMSO
+	--- U1-mut2-500-EtOH_vs_DMSO
+	--- U1-mut2-500-CHX_vs_DMSO
+	--- BIO2195127-CHX_vs_U1_WT100_CHX
+found results columns, replacing these
+		relevel
+	--- BIO2197294-CHX_vs_U1_WT100_CHX
+	--- Branaplam-CHX_vs_U1_WT100_CHX
+	--- U1-mut1-100-CHX_vs_WT_CHX
+	--- U1-mut2-100-CHX_vs_WT_CHX
+	--- BIO2195127-EtOH_vs_U1_WT100_EtOH
+found results columns, replacing these
+		relevel
+	--- BIO2197294-EtOH_vs_U1_WT100_EtOH
+	--- Branaplam-EtOH_vs_U1_WT100_EtOH
+	--- U1-WT100-CHX_vs_WT100
+	--- U1-mut1-100-EtOH_vs_WT_EtOH
+	--- U1-mut1-100-CHX_vs_WT_EtOH
+	--- U1-mut2-100-EtOH_vs_WT_EtOH
+	--- U1-mut2-100-CHX_vs_WT_EtOH
+	--- BIO2195127-CHX_vs_U1_WT500_CHX
+found results columns, replacing these
+		relevel
+	--- BIO2197294-CHX_vs_U1_WT500_CHX
+	--- Branaplam-CHX_vs_U1_WT500_CHX
+	--- U1-mut1-500-CHX_vs_WT_CHX
+	--- U1-mut2-500-CHX_vs_WT_CHX
+	--- BIO2195127-EtOH_vs_U1_WT500_EtOH
+found results columns, replacing these
+		relevel
+	--- BIO2197294-EtOH_vs_U1_WT500_EtOH
+	--- Branaplam-EtOH_vs_U1_WT500_EtOH
+	--- U1-WT500-CHX_vs_WT500
+	--- U1-WT-500-BIO2197294_vs_WT-500
+	--- U1-WT-500-Branaplam_vs_WT-500
+	--- U1-mut1-500-EtOH_vs_WT_EtOH
+	--- U1-mut1-500-CHX_vs_WT_EtOH
+	--- U1-mut2-500-EtOH_vs_WT_EtOH
+	--- U1-mut2-500-CHX_vs_WT_EtOH
+	--- BIO2195127-CHX_vs_U1_U1_mut1_100_CHX
+found results columns, replacing these
+		relevel
+	--- BIO2197294-CHX_vs_U1_U1_mut1_100_CHX
+	--- Branaplam-CHX_vs_U1_U1_mut1_100_CHX
+	--- BIO2195127-EtOH_vs_U1_U1_mut1_100_EtOH
+found results columns, replacing these
+		relevel
+	--- BIO2197294-EtOH_vs_U1_U1_mut1_100_EtOH
+	--- Branaplam-EtOH_vs_U1_U1_mut1_100_EtOH
+	--- U1-mut1-100-CHX_vs_mut1-100
+	--- BIO2195127-CHX_vs_U1_U1_mut1_500_CHX
+found results columns, replacing these
+		relevel
+	--- BIO2197294-CHX_vs_U1_U1_mut1_500_CHX
+	--- Branaplam-CHX_vs_U1_U1_mut1_500_CHX
+	--- BIO2195127-EtOH_vs_U1_U1_mut1_500_EtOH
+found results columns, replacing these
+		relevel
+	--- BIO2197294-EtOH_vs_U1_U1_mut1_500_EtOH
+	--- Branaplam-EtOH_vs_U1_U1_mut1_500_EtOH
+	--- U1-mut1-500-CHX_vs_mut1-500
+	--- BIO2195127-CHX_vs_U1_U1_mut2_100_CHX
+found results columns, replacing these
+		relevel
+	--- BIO2197294-CHX_vs_U1_U1_mut2_100_CHX
+	--- Branaplam-CHX_vs_U1_U1_mut2_100_CHX
+	--- BIO2195127-EtOH_vs_U1_U1_mut2_100_EtOH
+found results columns, replacing these
+		relevel
+	--- BIO2197294-EtOH_vs_U1_U1_mut2_100_EtOH
+	--- Branaplam-EtOH_vs_U1_U1_mut2_100_EtOH
+	--- U1-mut2-100-CHX_vs_mut2-100
+	--- BIO2195127-CHX_vs_U1_U1_mut2_500_CHX
+found results columns, replacing these
+		relevel
+	--- BIO2197294-CHX_vs_U1_U1_mut2_500_CHX
+	--- Branaplam-CHX_vs_U1_U1_mut2_500_CHX
+	--- BIO2195127-EtOH_vs_U1_U1_mut2_500_EtOH
+found results columns, replacing these
+		relevel
+	--- BIO2197294-EtOH_vs_U1_U1_mut2_500_EtOH
+	--- Branaplam-EtOH_vs_U1_U1_mut2_500_EtOH
+	--- U1-mut2-500-CHX_vs_mut5-500
+     user    system   elapsed 
+11066.510   243.809  6460.207 
+There were 50 or more warnings (use warnings() to see the first 50)
+Obtaining networks ...
+   user  system elapsed 
+ 49.972   4.146  54.251 
+saving QuickOmics object ...
+	Formating the expression data
+	Formating the DEG results
+	Formating the sample meta information
+	saving...
+=================================================
+Results are saved in /mnt/depts/dept04/compbio/projects/TST12145/dnanexus/20230622062158_Zhen.Gao/EA20230815_0
+
+-----> Please visit: http://compbio.biogen.com:3838/Quickomics/?testfile=TST12145
+Please carefully review the results before publishing:
+----->'EApub' can be used to publish the project into ShinyOne project manager: http://compbio.biogen.com/shinyone
+
+Powered by the Research Data Sciences Group [fergal.casey@biogen.com;zhengyu.ouyang@biogen.com]
+
+
+
+================= then VERY slow process
+########################### () ########################### 
+########################### () ########################### 
+########################### () ########################### 
