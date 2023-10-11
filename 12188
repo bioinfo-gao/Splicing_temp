@@ -39,3 +39,1858 @@ for ((i=0; i<num_subfolders; i++)); do
         echo "No 'run1.sh' found in $current_subfolder"
     fi
 done
+
+#run.02C.DSG_counts_minmaxtable_plot_show_FDR_with_algorithem.R
+#setwd("/camhpc/ngs/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/code_downstream/")
+R.Version()
+#rm(list = ls()) #install.packages("ggVennDiagram") # 15min
+library("ggVennDiagram")
+library(ggplot2)
+require("UpSetR") # movies <- read.csv(system.file("extdata", "movies.csv", package = "UpSetR"), header = T, sep = ";")
+library(dplyr)
+library(plyr)
+library(tidyverse)
+# din     = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230921054434_Zhen.Gao_GMfibro_3vs3/DSG_Result/From_DNANenxs_Master/"
+# out_dir = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230921054434_Zhen.Gao_GMfibro_3vs3/DSG_Result/splicing_offtargets_distrtibution/"
+
+din     = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230921051846_Zhen.Gao_ShSy5Y_3vs3/DSG_Result/From_DNANenxs_Master/"
+out_dir = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230921051846_Zhen.Gao_ShSy5Y_3vs3/DSG_Result/splicing_offtargets_distrtibution/"
+
+dir.create(out_dir, recursive = T)
+setwd(out_dir)
+
+pformat = "/edgehpc/dept/compbio/users/dhuh/software/R/R_modified/pformat_whitebG.r"
+jet     = colorRampPalette(c("blue","green","yellow","orange","darkred")) # make gradient of colors #brightjet = colorRampPalette(c("#007FFF", "cyan","#7FFF7F", "yellow", "#FF7F00","#FF3535")) # make gradient of colors
+
+######################
+minpdj_maxdPSI_detail = function(tbtemp, colnn,  Algorithm ){
+    
+    gn = unique(tbtemp$geneSymbol)
+    if( sum(gn  == ".") > 0 ){ gn = gn[ !(gn  == ".") ] }  # remove un-annotated genes
+    
+    minmaxcum = as.data.frame( matrix(0, nrow = length(gn) , ncol = 4 ) )
+    colnames(minmaxcum) = colnn 
+    minmaxcum$genesymbol = gn
+    minmaxcum$Algorithm = Algorithm
+    minmaxcum
+    
+    for(i in 1:length(gn) ){
+        #             i =1 
+        i
+        #i = i+1
+        gntemp = gn[i]
+        
+        tbtemp2 = tbtemp[ which(tbtemp$geneSymbol ==  gntemp) , ]
+        
+        print(i)
+        print( tbtemp2)
+        
+        tbtemp3 = tbtemp2[which( tbtemp2$FDR_equal == min( tbtemp2$FDR_equal, na.rm = T) ), ]  # for leafcutter and rmats
+        tbtemp3
+        
+        #     dPSItemp = max(tbtemp3$abs_dPSI)  
+        #     padj_PdPSI = tbtemp3$FDR_equal[1]
+        #     }
+        # }
+        
+        minmaxcum[i, 3] = tbtemp3$FDR_equal[1]
+        minmaxcum[i, 4] = max(tbtemp3$abs_dPSI)  
+        
+    }
+    
+    return(minmaxcum)
+}
+
+coi_ar = dir(din, pattern = "dPSI0.1")    # all compounds, dPSI>0.1 #coi_ar = dir(din)
+
+thr_dPSI_rm = 0.3; 
+thr_dPSI_lc = 0.25; 
+thr_dPSI_mj = 0.3;
+
+param = paste0("dPSIrm",thr_dPSI_rm,"_dPSIlc",thr_dPSI_lc,"_padj0.05_EdPSI",thr_dPSI_mj,"_PdPSI0.9_M50") # for fout
+
+### minpadj per gene ####################
+minmaxall = c()
+
+for(i in 1:length(coi_ar)){
+    #    i = 1
+    coi = coi_ar[i] # compound of interest
+    fin = dir(din , pattern = coi)
+    tbtemp = read.table(paste0(din,fin) ,stringsAsFactors = F,sep = ",",header = 1)
+    head(tbtemp)
+    dim(tbtemp)
+    
+    tbtemp$abs_dPSI  =  abs(tbtemp$dPSI)
+    tbtemp$FDR_equal =      tbtemp$FDR    # as default
+    tbtemp[which(tbtemp$Algorithm == "majiq_v2"), ]$FDR_equal =  1- tbtemp[which(tbtemp$Algorithm == "majiq_v2"), ]$PdPSI   #   tbtemp2$FDR_equal = (1-tbtemp2$PdPSI) 
+    
+    ## apply thresholding per algorithm ##
+    rm_t = tbtemp[ which( tbtemp$Algorithm ==  "rmats_turbo" & abs(tbtemp$dPSI)       >=  thr_dPSI_rm) , ] #   rm_t = tbtemp[ which( tbtemp$Algorithm ==  "rmats"      & abs(tbtemp$dPSI)       >=  thr_dPSI_rm) , ] 
+    lc_t = tbtemp[ which( tbtemp$Algorithm ==  "leafcutter"  & abs(tbtemp$dPSI)       >=  thr_dPSI_lc) , ]
+    mj_t = tbtemp[ which( tbtemp$Algorithm ==  "majiq_v2"    &     tbtemp$Cutoff_dPSI >=  thr_dPSI_mj) , ] #   mj_t = tbtemp[ which( tbtemp$Algorithm ==  "majiq"      &     tbtemp$Cutoff_dPSI >=  thr_dPSI_mj) , ]
+    
+    head(rm_t)
+    head(lc_t)
+    head(mj_t) #   tail(mj_t)
+    
+    rm_r = rm_t[, c( "geneSymbol",  "GeneID", "Algorithm", "FDR", "PdPSI", "FDR_equal", "dPSI", "abs_dPSI")] 
+    lc_r = lc_t[, c( "geneSymbol",  "GeneID", "Algorithm", "FDR", "PdPSI", "FDR_equal", "dPSI", "abs_dPSI")] 
+    mj_r = mj_t[, c( "geneSymbol",  "GeneID", "Algorithm", "FDR", "PdPSI", "FDR_equal", "dPSI", "abs_dPSI")] #   tbtemp_t[, c( "chr", "strand", "geneSymbol",  "GeneID", "Event", "Algorithm", "FDR", "PValue", "dPSI", "M", "PSI_1", "PSI_2")] # 199 18
+    
+    head(rm_r)
+    head(lc_r)
+    head(mj_r) #   tail(mj_t)
+    
+    coi_name = gsub( "filteredevents_" ,  "" , coi )
+    coi_name = gsub( "_dPSI0.1_padj0.05_M50_EdPSI0.1_PdPSI0.9.csv" ,  "" , coi_name )
+    coi_name = gsub( "BIO_" ,  "" , coi_name )
+    coi_name
+    
+    rm_r_temp = minpdj_maxdPSI_detail( tbtemp = rm_r , colnn = c("genesymbol" , "Algorithm", paste0("minpadj_maxPdPSI_",coi_name) , paste0("dPSI_",coi_name) ) , Algorithm = "rmats_turbo" )  ##  == == == == == == == == == == == == == == == == == == Call the function
+    lc_r_temp = minpdj_maxdPSI_detail( tbtemp = lc_r , colnn = c("genesymbol" , "Algorithm", paste0("minpadj_maxPdPSI_",coi_name) , paste0("dPSI_",coi_name) ) , Algorithm = "leafcutter"  )  ##  == == == == == == == == == == == == == == == == == == Call the function
+    mj_r_temp = minpdj_maxdPSI_detail( tbtemp = mj_r , colnn = c("genesymbol" , "Algorithm", paste0("minpadj_maxPdPSI_",coi_name) , paste0("dPSI_",coi_name) ) , Algorithm = "majiq_v2"    )  ##  == == == == == == == == == == == == == == == == == == Call the function
+    
+    rm_r_temp
+    lc_r_temp
+    mj_r_temp
+    dim( rm_r_temp) 
+    dim(lc_r_temp)
+    dim(mj_r_temp)
+    
+    
+    DSG_Called = bind_rows('rmats_turbo' = rm_r_temp,
+                           'leafcutter'  = lc_r_temp,
+                           'majiq_v2'    = mj_r_temp,  .id = 'type') 
+    DSG_Called
+    
+    DSG_Called %>%   ggplot( aes( x = dPSI_SH_1949634_10x_vs_SH_DMSO, 
+                                  y = log( minpadj_maxPdPSI_SH_1949634_10x_vs_SH_DMSO ), 
+                                  color = type ,
+                                  shape = type ) ) +     
+    geom_point() + ggtitle( paste0( "DSG genes in     " , coi_name ) ) + theme(plot.title = element_text(hjust = 0.5))
+    
+  
+    ggplot(DSG_Called, aes(x = type, 
+                           y = dPSI_SH_1949634_10x_vs_SH_DMSO, 
+                           colour = type,
+                           shape  = type ) )  + 
+        stat_boxplot(geom ='errorbar', width = 0.2) + #  1.5 IQR or MIN/MAX  
+        geom_boxplot(width=0.5) + 
+        geom_jitter(width = 0.21) + 
+        ggtitle( paste0( "Barplot of dPSI of DSG genes in     " , coi_name ) ) +
+        theme(plot.title = element_text(hjust = 0.5))     
+    
+    
+
+    tbtemp_t = rbind(rm_t, lc_t, mj_t)
+    tbtemp_t = tbtemp_t[!(tbtemp_t$geneSymbol ==  ".") ,] #clean up some names
+    head(tbtemp_t)
+    dim(tbtemp_t) # 199 18
+    
+    # goi = "SMN2"; tbtemp_t[which(tbtemp_t$geneSymbol ==  goi) ,]   # goi = "ATG16L1"; tbtemp_t[which(tbtemp_t$geneSymbol ==  goi) ,]
+    
+    ## extract min-pval-max-dPSI ##
+    #minmaxtemp = minpdj_maxdPSI( tbtemp_t, colnn = c("genesymbol",paste0("minpadj_maxPdPSI_",coi) , paste0("dPSI_",coi) ) )  ##  == == == == == == == == == == == == == == == == == == Call the function
+    
+    head(minmaxtemp)
+    
+    # ## optional: clean up colnames ##
+    # colnames(minmaxtemp) = gsub("filteredevents_","", sapply( strsplit( colnames(minmaxtemp) , paste0("_dPSI") ) , "[[", 1) ) #   gsub("filteredevents_TST11742_","", sapply( strsplit( colnames(minmaxtemp) , paste0("_dPSI") ) , "[[", 1) )
+    # 
+    # ## merge ##
+    # if(i ==  1){ minmaxall = minmaxtemp
+    # } else{  minmaxall = merge(minmaxall, minmaxtemp, by.x = "genesymbol", by.y = "genesymbol" , all = T) }
+    
+    minmaxtemp = tbtemp_t
+    head(minmaxtemp)
+    
+}
+
+head(minmaxall) 
+dim(minmaxall) # [1] [1] 2331   85 for GM GM09677c SMA fibroblasts  cells  *** 2195   61 for SySy5Y cells                                  [2] 162  60 GM cells [1] 249   84 GM cells 
+
+colnames(minmaxall) = gsub("minpadj_maxPdPSI_","Padj_maxP_", colnames(minmaxall)) # colnames(minmaxall) = gsub("filteredevents_","", colnames(minmaxall)) #              gsub("filteredevents_TST11955_","", colnames(minmaxall))
+#colnames(minmaxall) = gsub("WT100","WT_100", colnames(minmaxall))  #colnames(minmaxall) = gsub("WT500","WT_500", colnames(minmaxall)) 
+
+minmaxall_raw = minmaxall
+rownames(minmaxall) = make.names(minmaxall$genesymbol , unique = T)            # should take care     
+minmaxall$genesymbol = NULL 
+
+colnames(minmaxall) 
+row.names(minmaxall) 
+minmaxall[1:10, 1:10] 
+minmaxall_raw[1:10, 1:10] 
+
+#minmaxall = minmaxall[,order(colnames(minmaxall))]
+getwd()
+
+fout = paste0("summarytable_minpadj_maxPdPSI_dPSI_",param,".csv")
+write.csv(minmaxall_raw,file = fout,quote = F, row.names = F)
+
+fout = paste0("summarytable_with_gene",param,".csv")
+write.csv(minmaxall,file = fout,quote = F, row.names = T)
+
+########################################### 08-01-2023
+dim(minmaxall)
+minmaxall[1:10, 1:10]
+
+any(row.names(minmaxall) %in% "NA")
+any(row.names(minmaxall) %in% "NA.")
+any(row.names(minmaxall) %in% "NA..")
+minmaxall = minmaxall[ !(row.names(minmaxall) %in% c("NA", "NA.", "NA..")), ]
+
+for(i in 1:ncol(minmaxall) ){
+    my_vec = minmaxall[, i]
+    print(i)
+    print(any( is.infinite(my_vec)) )  #   any( is.infinite(my_vec))          68
+}
+
+dim(minmaxall) #  2331 82 GM cells
+head(minmaxall) 
+########################################### 08-01-2023
+
+minmaxall_dPSI  = minmaxall[, grep( "genesymbol|^dPSI", colnames(minmaxall) ) ] #drop padj, only keep dPSI, eq. delete 50% columns. <<============ colnames(minmaxall) = gsub("minpadj_maxPdPSI_","Padj_mP_", colnames(minmaxall) )  #####
+
+head(minmaxall_dPSI )
+minmaxall_dPSI[1:5, 1:5]
+
+dim(minmaxall_dPSI )
+colnames(minmaxall_dPSI ) ###############=====================<<<<<<<<<<<<<<< 07-16-2022
+
+dPSI_bi = minmaxall_dPSI2 = minmaxall_dPSI 
+
+row.names(dPSI_bi ) # row.names(dPSI_bi ) =  make.names(dPSI_bi$genesymbol, unique=TRUE) # dPSI_bi $genesymbol = NULL
+
+dPSI_bi[ is.na(dPSI_bi)       ] = 0
+dPSI_bi[   abs(dPSI_bi) >0    ] = 1
+dPSI_bi
+
+colnames(dPSI_bi) 
+colnames(dPSI_bi) = gsub("dPSI_" , "", colnames(dPSI_bi) ) # colnames(dPSI_bi) = gsub("dPSI_","", gsub("_max.abs.dPSI..","",colnames(dPSI_bi)))
+
+head(dPSI_bi)
+dim(dPSI_bi)
+
+fout = paste0("binary_",param,".csv")
+write.csv(dPSI_bi,file = fout,quote = F)
+
+##############################
+#####  plots : separate file as well #################
+##############################
+## total number of DSG ###
+
+# 1) all samples 
+y = colSums(dPSI_bi)
+names(y) = gsub( "_3x" , "_03x", names(y) )  # y %>% select(sub('_ln$', '', filter_vector))
+y = y[order(names(y), decreasing=T)]
+
+fout=paste0("binary_numDSG_",param,"vertica.png")
+colorr=c( rep(rgb(0.7,0.7,0.7),4), rep(rgb(0.3,0.3,0.3),4) )    #"violet" , "grey"  ) # blue, navy, grey "indianred" , "violet"   "cyan" , "violet"
+
+y
+
+# 2) samples to DMSO
+y = colSums(dPSI_bi)
+names(y) = gsub( "_3x" , "_03x", names(y) )  # y %>% select(sub('_ln$', '', filter_vector))
+y = y[order(names(y), decreasing=T)]
+
+y = y[ grepl( "vs_.._DMSO" , names(y) ) ] # y %>% select(sub('_ln$', '', filter_vector)) # y = y[ grepl( "vs_SH_DMSO" , names(y) ) ] # y %>% select(sub('_ln$', '', filter_vector))
+
+fout=paste0("binary_numDSG_",param,"vertical_DMSO.png")
+colorr=c( "cyan" , "grey"  ) # blue, navy, grey "indianred" , "violet"   "cyan" , "violet"  colorr=c( rep(rgb(0.7,0.7,0.7),2),rep(rgb(0.3,0.3,0.3),2)   )
+
+# 2) samples to Risdiplam  1949634
+y = colSums(dPSI_bi)
+names(y) = gsub( "_3x" , "_03x", names(y) )  # y %>% select(sub('_ln$', '', filter_vector))
+y = y[order(names(y), decreasing=T)]
+y = y[ grepl( "vs_.._BIO_1949634" , names(y) ) ] # y %>% select(sub('_ln$', '', filter_vector))
+fout=paste0("binary_numDSG_",param,"vertical_Risdiplam.png")
+colorr=c( "violet" , "grey"  ) # blue, navy, grey "indianred" , "violet"   "cyan" , "violet"
+
+#### plotting
+png(fout,width=800, height=length(y)*35) # png(fout,width=800, height=length(y)*25)
+source(pformat)
+par(mar=c(10,28,1,1))
+bp=barplot(y,  xlim = c(0, max(y)*1.2 ), border=NA,  names.arg=gsub("dPSI","", names(y) ),
+           las=2,  cex.axis=0.8,  cex.names=1.0, #cex.axis	 #           expansion factor for numeric axis labels.            las=2,  cex.axis=1.2,  cex.names=1.5 font size
+           horiz=T, col=colorr,
+           sub = "number(DSG)", font.sub = 4,  cex.sub = 2.0)  #http://howtoinr.weebly.com/customize-labels1.html col.sub = "Red",
+text(y, bp, labels = y, pos=4, cex=1.2, offset = 0.3) # lable the differenrtial gene count on the top of BAR
+dev.off()
+
+
+fout = paste0("UpSet_0_top_5", ".png")
+png(fout,height = 1000, width = length(y)*75) #png(fout,height = 500, width = length(y)*50)
+upset(dPSI_bi ,  mainbar.y.label = "Differential Splicing Differential Splicing Gene Overlaps", point.size = 3.5, text.scale = c(2.5, 2, 1.5, 1.5, 2, 2))    # https://cran.r-project.org/web/packages/UpSetR/vignettes/basic.usage.html
+dev.off()
+
+
+# run.05.DSG_counts_overlap.R
+# #setwd("/camhpc/ngs/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/code_downstream/")
+R.Version()
+#rm(list = ls()) #install.packages("ggVennDiagram") # 15min
+#library("ggVennDiagram")
+library(ggplot2)
+require("UpSetR") # movies <- read.csv(system.file("extdata", "movies.csv", package = "UpSetR"), header = T, sep = ";")
+library(dplyr)
+
+getwd()
+out_dir = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/2023-09-24-4vs4-3vs3-difference/DSG_Result_difference_09-25/"
+dir.create(out_dir, recursive = T)               #dir.create(din, recursive = T)
+setwd(out_dir )
+
+
+######
+GM_4vs4_dPSI_bi =  read.csv("/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230824054737_Zhen.Gao_GM_noSMN1/DSG_Result/splicing_offtargets_rerun_4vs4_09-25/binary_dPSIrm0.3_dPSIlc0.25_padj0.05_EdPSI0.3_PdPSI0.9_M50.csv", stringsAsFactors=F)   
+row.names(GM_4vs4_dPSI_bi ) # row.names(dPSI_bi ) =  make.names(dPSI_bi$genesymbol, unique=TRUE) # dPSI_bi $genesymbol = NULL
+row.names(GM_4vs4_dPSI_bi )  = GM_4vs4_dPSI_bi $X
+GM_4vs4_dPSI_bi$X = NULL
+
+######
+SH_4vs4_dPSI_bi =  read.csv("/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230823221304_Zhen.Gao_ShSy5Y_GRCh38/DSG_Result/splicing_offtargets_rerun_4vs4_09-25/binary_dPSIrm0.3_dPSIlc0.25_padj0.05_EdPSI0.3_PdPSI0.9_M50.csv", stringsAsFactors=F)   
+row.names(SH_4vs4_dPSI_bi  ) # row.names(SH_4vs4_dPSI_bi  ) =  make.names(SH_4vs4_dPSI_bi $genesymbol, unique=TRUE) # SH_4vs4_dPSI_bi  $genesymbol = NULL
+row.names(SH_4vs4_dPSI_bi  )  = SH_4vs4_dPSI_bi $X
+SH_4vs4_dPSI_bi$X = NULL
+#####
+
+
+######
+GM_3vs3_dPSI_bi =  read.csv("/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230921054434_Zhen.Gao_GMfibro_3vs3/DSG_Result/splicing_offtargets_3vs3_09-25//binary_dPSIrm0.3_dPSIlc0.25_padj0.05_EdPSI0.3_PdPSI0.9_M50.csv", stringsAsFactors=F)   
+row.names(GM_3vs3_dPSI_bi  ) # row.names(GM_3vs3_dPSI_bi  ) =  make.names(GM_3vs3_dPSI_bi $genesymbol, unique=TRUE) # GM_3vs3_dPSI_bi  $genesymbol = NULL
+row.names(GM_3vs3_dPSI_bi  )  = GM_3vs3_dPSI_bi $X
+GM_3vs3_dPSI_bi$X = NULL
+
+######
+SH_3vs3_dPSI_bi =  read.csv("/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230921051846_Zhen.Gao_ShSy5Y_3vs3/DSG_Result/splicing_offtargets_3vs3_09-25/binary_dPSIrm0.3_dPSIlc0.25_padj0.05_EdPSI0.3_PdPSI0.9_M50.csv", stringsAsFactors=F)   
+row.names(SH_3vs3_dPSI_bi  ) # row.names(SH_3vs3_dPSI_bi  ) =  make.names(SH_3vs3_dPSI_bi $genesymbol, unique=TRUE) # SH_3vs3_dPSI_bi  $genesymbol = NULL
+row.names(SH_3vs3_dPSI_bi  )  = SH_3vs3_dPSI_bi $X
+SH_3vs3_dPSI_bi$X = NULL
+#####
+
+
+dim(GM_4vs4_dPSI_bi)
+dim(SH_4vs4_dPSI_bi)
+dim(GM_3vs3_dPSI_bi)
+dim(SH_3vs3_dPSI_bi)
+GM_4vs4_dPSI_bi[1:6,1:6]
+SH_4vs4_dPSI_bi[1:6,1:6]
+GM_3vs3_dPSI_bi[1:6,1:6]
+SH_3vs3_dPSI_bi[1:6,1:6]
+
+colnames(GM_4vs4_dPSI_bi) =  paste0( "4vs4_", colnames(GM_4vs4_dPSI_bi) )
+colnames(SH_4vs4_dPSI_bi) =  paste0( "4vs4_", colnames(SH_4vs4_dPSI_bi) )
+colnames(GM_3vs3_dPSI_bi) =  paste0( "3vs3_", colnames(GM_3vs3_dPSI_bi) )
+colnames(SH_3vs3_dPSI_bi) =  paste0( "3vs3_", colnames(SH_3vs3_dPSI_bi) )
+
+
+GM_4vs4_3vs3_dPSI_bi = merge(GM_4vs4_dPSI_bi, GM_3vs3_dPSI_bi, by = 0, all = T)
+dim(GM_4vs4_3vs3_dPSI_bi)
+dPSI_bi = GM_4vs4_3vs3_dPSI_bi      # 4vs4_GM_BIO_1949634_10x
+
+SH_4vs4_3vs3_dPSI_bi = merge(SH_4vs4_dPSI_bi, SH_3vs3_dPSI_bi, by = 0, all = T)
+dim(SH_4vs4_3vs3_dPSI_bi)
+dPSI_bi = SH_4vs4_3vs3_dPSI_bi
+
+head(dPSI_bi)
+row.names(dPSI_bi) = dPSI_bi$Row.names
+dPSI_bi$Row.names = NULL
+
+dPSI_bi[is.na(dPSI_bi)] <- 0 
+
+head(dPSI_bi)
+dim(dPSI_bi)
+colnames(dPSI_bi)
+
+
+# "GM_BIO_2178782" "GM_BIO_2186827" "GM_BIO_2196772" "GM_BIO_2196895" "GM_BIO_2197306" "GM_BIO_2199562" "GM_BIO_2201042" "GM_BIO_2204984" "GM_BIO_2206678" "GM_BIO_2207180" ==== #############
+dPSI_bi_working = dPSI_bi[ ,  grepl( "^...._.._..._1949634_10x"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep 4vs4_GM_BIO_1949634_10x 3vs3_GM_BIO_1949634_10x_
+dPSI_bi_working = dPSI_bi[ ,  grepl( "^...._.._..._1949634_3x"     , colnames(dPSI_bi)  ) ]  # grepl NOT grep 4vs4_GM_BIO_1949634_3x 3vs3_GM_BIO_1949634_3x_
+
+
+dPSI_bi_working[1:6, ] # only 2 column
+
+# 
+#  dPSI_bi_working = dPSI_bi[ ,  grepl( "^GM_2178782"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep
+#   dPSI_bi_working = dPSI_bi[ ,  grepl( "^GM_2186827"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep
+#   dPSI_bi_working = dPSI_bi[ ,  grepl( "^GM_2196772"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep
+#   dPSI_bi_working = dPSI_bi[ ,  grepl( "^GM_2196895"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep
+#   dPSI_bi_working = dPSI_bi[ ,  grepl( "^GM_2197306"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep
+# # # 
+#   dPSI_bi_working = dPSI_bi[ ,  grepl( "^GM_2199562"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep
+#   dPSI_bi_working = dPSI_bi[ ,  grepl( "^GM_2201042"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep
+#   dPSI_bi_working = dPSI_bi[ ,  grepl( "^GM_2204984"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep
+#   dPSI_bi_working = dPSI_bi[ ,  grepl( "^GM_2206678"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep
+#   dPSI_bi_working = dPSI_bi[ ,  grepl( "^GM_2207180"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep
+
+###### 
+dPSI_bi_working 
+dPSI_bi_working = dPSI_bi_working[!(rowSums(dPSI_bi_working) == 0), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+head(dPSI_bi_working)
+dPSI_bi_working[1:2,]
+dim(dPSI_bi_working)
+
+colnames_set = colnames(dPSI_bi_working) # 15 types
+colnames_set
+
+getwd()
+# fout = paste0("GM_5_UpSet_Ris_10x", ".png")
+# fout = paste0("GM_5_UpSet_Ris_3x", ".png")
+
+fout = paste0("SH_5_UpSet_Ris_10x", ".png")
+#fout = paste0("SH_5_UpSet_Ris_3x", ".png")
+
+# fout = paste0("5_UpSet_Ris", ".png")
+ # fout = paste0("6_UpSet_BIO_2178782_vs_DMSO_and_Ris", ".png")
+ # fout = paste0("7_UpSet_BIO_2186827_vs_DMSO_and_Ris", ".png")
+ # fout = paste0("8_UpSet_BIO_2196772_vs_DMSO_and_Ris", ".png")
+ # fout = paste0("9_UpSet_BIO_2196895_vs_DMSO_and_Ris", ".png")
+ # fout = paste0("10_UpSet_BIO_2197306_vs_DMSO_and_Ris", ".png")
+ # fout = paste0("11_UpSet_BIO_2199562_vs_DMSO_and_Ris", ".png")
+ # fout = paste0("12_UpSet_BIO_2201042_vs_DMSO_and_Ris", ".png")
+ # fout = paste0("13_UpSet_BIO_2204984_vs_DMSO_and_Ris", ".png")
+ # fout = paste0("14_UpSet_BIO_2206678_vs_DMSO_and_Ris", ".png")
+ # fout = paste0("15_UpSet_BIO_2207180_vs_DMSO_and_Ris", ".png")
+
+png(fout, height = 1000, width = 680+ncol(dPSI_bi_working)*50)            #png(fout,height = 500, width = length(y)*50)
+upset(dPSI_bi_working , sets = colnames_set,  mainbar.y.label = "Differential Splicing Gene Overlaps", point.size = 3.5, text.scale = c(2.5, 2, 1.5, 1.5, 2, 2))    # https://cran.r-project.org/web/packages/UpSetR/vignettes/basic.usage.html
+dev.off()
+
+
+### "SH_1949634" "SH_2178782" "SH_2196772" "SH_2196895" "SH_2197306" "SH_2199562" "SH_2204984" "SH_2207180"
+dPSI_bi_working = dPSI_bi[ ,  grepl( "^SH_1949634"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep
+
+ dPSI_bi_working = dPSI_bi[ ,  grepl( "^SH_2178782"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep  # dPSI_bi_working = dPSI_bi[ ,  grepl( "^SH_2186827"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep
+ dPSI_bi_working = dPSI_bi[ ,  grepl( "^SH_2196772"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep
+ dPSI_bi_working = dPSI_bi[ ,  grepl( "^SH_2196895"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep
+ dPSI_bi_working = dPSI_bi[ ,  grepl( "^SH_2197306"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep
+
+ dPSI_bi_working = dPSI_bi[ ,  grepl( "^SH_2199562"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep  # dPSI_bi_working = dPSI_bi[ ,  grepl( "^SH_2201042"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep
+ dPSI_bi_working = dPSI_bi[ ,  grepl( "^SH_2204984"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep  # dPSI_bi_working = dPSI_bi[ ,  grepl( "^SH_2206678"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep
+ dPSI_bi_working = dPSI_bi[ ,  grepl( "^SH_2207180"    , colnames(dPSI_bi)  ) ]  # grepl NOT grep
+
+###### 
+dPSI_bi_working 
+dPSI_bi_working = dPSI_bi_working[!(rowSums(dPSI_bi_working) == 0), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+head(dPSI_bi_working)
+dPSI_bi_working[1:2,]
+dim(dPSI_bi_working)
+
+colnames_set = colnames(dPSI_bi_working) # 15 types
+colnames_set
+
+ fout = paste0("SH_5_UpSet_Ris", ".png")
+ fout = paste0("6_UpSet_BIO_2178782_vs_DMSO_and_Ris", ".png") #  fout = paste0("7_UpSet_BIO_2186827_vs_DMSO_and_Ris", ".png")
+ fout = paste0("8_UpSet_BIO_2196772_vs_DMSO_and_Ris", ".png") 
+ fout = paste0("9_UpSet_BIO_2196895_vs_DMSO_and_Ris", ".png")
+ fout = paste0("10_UpSet_BIO_2197306_vs_DMSO_and_Ris", ".png")
+ fout = paste0("11_UpSet_BIO_2199562_vs_DMSO_and_Ris", ".png") #  fout = paste0("12_UpSet_BIO_2201042_vs_DMSO_and_Ris", ".png")
+ fout = paste0("13_UpSet_BIO_2204984_vs_DMSO_and_Ris", ".png") #  fout = paste0("14_UpSet_BIO_2206678_vs_DMSO_and_Ris", ".png")
+ fout = paste0("15_UpSet_BIO_207180_vs_DMSO_and_Ris", ".png")
+
+ getwd()
+png(fout, height = 1000, width = 680+ncol(dPSI_bi_working)*50)            #png(fout,height = 500, width = length(y)*50)
+upset(dPSI_bi_working , sets = colnames_set,  mainbar.y.label = "Differential Splicing Gene Overlaps", point.size = 3.5, text.scale = c(2.5, 2, 1.5, 1.5, 2, 2))    # https://cran.r-project.org/web/packages/UpSetR/vignettes/basic.usage.html
+dev.off()
+
+# run.06.DSG_counts_minmaxtable_coorelationlot1_venn.R
+#setwd("/camhpc/ngs/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/code_downstream/")
+R.Version()
+rm(list = ls()) #install.packages("ggVennDiagram") # 15min#
+library("ggVennDiagram")
+library(ggplot2)
+#require("UpSetR") # movies <- read.csv(system.file("extdata", "movies.csv", package = "UpSetR"), header = T, sep = ";")
+library(dplyr)
+library(ggrepel) # https://cran.r-project.org/web/packages/ggrepel/vignettes/ggrepel.html
+set.seed(42)
+
+din     = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230921054434_Zhen.Gao_GMfibro_3vs3/DSG_Result/From_DNANenxs_Master_3vs3_09-25/"
+#out_dir = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230921054434_Zhen.Gao_GMfibro_3vs3/DSG_Result/splicing_offtargets_3vs3_09-30_abs_dPSI_plotting/10x_dose/dPSI_0.25/" #splicing_offtargets_3vs3_09-29_abs_dPSI/" #_09-28_
+#out_dir = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230921054434_Zhen.Gao_GMfibro_3vs3/DSG_Result/splicing_offtargets_3vs3_09-30_abs_dPSI_plotting/3x_dose/dPSI_0.25/" 
+out_dir = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230921054434_Zhen.Gao_GMfibro_3vs3/DSG_Result/splicing_offtargets_3vs3_09-30_abs_dPSI_plotting/venn/"
+
+# din     = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230921051846_Zhen.Gao_ShSy5Y_3vs3/DSG_Result/From_DNANenxs_Master_3vs3_09-25/"
+# out_dir = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230921051846_Zhen.Gao_ShSy5Y_3vs3/DSG_Result/splicing_offtargets_3vs3_09-29_abs_dPSI/"
+
+# din     = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230824054737_Zhen.Gao_GM_noSMN1/DSG_Result/From_DNANenxs_Master_rerun_4vs4_09-25/"
+# out_dir = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230824054737_Zhen.Gao_GM_noSMN1/DSG_Result/splicing_offtargets_rerun_4vs4_09-29_abs_dPSI/"
+# 
+# din     = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230823221304_Zhen.Gao_ShSy5Y_GRCh38/DSG_Result/From_DNANenxs_Master_rerun_4vs4_09-25/"
+# out_dir = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230823221304_Zhen.Gao_ShSy5Y_GRCh38/DSG_Result/splicing_offtargets_rerun_4vs4_09-29_abs_dPSI/"
+
+dir.create(out_dir, recursive = T)
+setwd(out_dir)
+
+pformat = "/edgehpc/dept/compbio/users/dhuh/software/R/R_modified/pformat_whitebG.r"
+jet     = colorRampPalette(c("blue","green","yellow","orange","darkred")) # make gradient of colors #brightjet = colorRampPalette(c("#007FFF", "cyan","#7FFF7F", "yellow", "#FF7F00","#FF3535")) # make gradient of colors
+
+######################
+minpdj_maxdPSI_FDR_qual = function(tbtemp, colnn){         ##==09-28-all abs() ZG
+
+  gn = unique(tbtemp$geneSymbol)
+  
+  if( sum(gn  == ".") > 0 ){ gn = gn[ !(gn  == ".") ] }  # remove un-annotated genes
+  
+  minmaxcum = as.data.frame( matrix(0, nrow = length(gn) , ncol = 4 ) )      #  3 add algorithm =======> ZG 2023-10-05
+  colnames(minmaxcum) = colnn 
+  minmaxcum$genesymbol = gn
+  minmaxcum
+  
+  for(i in 1:length(gn)){
+    #       i
+    gntemp = gn[i]
+    #gntemp = "HTT"
+    #gntemp = "SMN1"
+    #gntemp = "SMN2"
+    
+    tbtemp2 = tbtemp[ which(tbtemp$geneSymbol ==  gntemp) , ]
+    
+    if(nrow(tbtemp2) ==  1){          # only one row of goi, no "min" needed
+      
+      dPSItemp        = abs( tbtemp2$dPSI )
+      algorithem_used = tbtemp2$Algorithm             # for majiq, keep PdPSI. =======> ZG 2023-10-05
+      if(tbtemp2$Algorithm ==  "majiq_v2"){                                                #  from "majiq" 
+        padj_PdPSI = 1- tbtemp2$PdPSI                               # for majiq, keep PdPSI. =======> ZG 2023-10-05
+      }else{
+        padj_PdPSI = tbtemp2$FDR      # for rmats and leafcutter keep padj
+      }
+      
+    }else{                            # if there are more than two rows of goi (gene of interest) , find either "min" padj or max PdPSI 
+      
+      rn_minpadj = which( tbtemp2$FDR == min( tbtemp2$FDR, na.rm = T) ) 
+      tbtemp3 = tbtemp2[ rn_minpadj, ]
+      
+      if(nrow(tbtemp3) ==  0){                # if there's no min, it's all majiq, with multiple lines
+        rn_maxpdpsi = which(tbtemp2$PdPSI  == max(tbtemp2$PdPSI, na.rm = T)  ) # ..get the max(PdPSI)
+        tbtemp3 = tbtemp2[rn_maxpdpsi,]
+        
+        if(nrow(tbtemp3) ==  1){       # if there's only one max PdPSI
+          dPSItemp =  abs( tbtemp3$dPSI )
+          padj_PdPSI = 1- tbtemp3$PdPSI                           # for majiq, keep PdPSI. =======> ZG 2023-10-05
+          algorithem_used = tbtemp3$Algorithm     ####=======>>
+        }else{                         #if there's more than on max dPSI
+          dPSItemp = max( abs( tbtemp3$dPSI) )  # pick the max(dPSI)
+          padj_PdPSI = 1- tbtemp3$PdPSI[1]
+          algorithem_used = tbtemp3$Algorithm[1]  ####=======>>
+        }
+        
+      }else if(nrow(tbtemp3) ==  1){  # if there's only one min (either rmats or leafcutter, no majiq)
+        dPSItemp   = abs( tbtemp3$dPSI )
+        padj_PdPSI = tbtemp3$FDR
+        algorithem_used = tbtemp3$Algorithm     ####=======>>
+      }else{                          # more than 1 min, pick max(dPSI). both are either rmats or leafcutter. 
+        dPSItemp = max( abs( tbtemp3$dPSI) )
+        padj_PdPSI = tbtemp3$FDR[1]
+        algorithem_used = tbtemp3$Algorithm[1]     ####=======>>
+      }
+    }
+    minmaxcum[i, 2] = padj_PdPSI
+    minmaxcum[i, 3] = dPSItemp
+    minmaxcum[i, 4] = algorithem_used
+    
+  }
+  
+  print(minmaxcum[i,])
+  return(minmaxcum)
+}
+
+coi_ar = dir(din, pattern = "dPSI0.1")    # all compounds, dPSI>0.1 #coi_ar = dir(din)
+coi_short_names = gsub( "_dPSI0.1_padj0.05_M50_EdPSI0.1_PdPSI0.9.csv" ,  "" , coi_ar )
+coi_short_names = gsub( "filteredevents_" ,  "" , coi_short_names )
+coi_short_names
+
+thr_dPSI_rm = 0.3; 
+thr_dPSI_lc = 0.25; 
+thr_dPSI_mj = 0.3;
+
+param = paste0("dPSIrm",thr_dPSI_rm,"_dPSIlc",thr_dPSI_lc,"_padj0.05_EdPSI",thr_dPSI_mj,"_PdPSI0.9_M50") # for fout
+
+# colnames(dPSI_bi) 
+# colnames(dPSI_bi) = gsub("dPSI_" , "", colnames(dPSI_bi) ) # colnames(dPSI_bi) = gsub("dPSI_","", gsub("_max.abs.dPSI..","",colnames(dPSI_bi)))
+# colnames(dPSI_bi) = gsub("BIO_" , "", colnames(dPSI_bi) )  # y %>% select(sub('_ln$', '', filter_vector))
+
+### minpadj per gene ####################
+minmaxall = c()
+
+for(i in 1:length(coi_ar)){
+  #    i = 1
+  coi = coi_ar[i] # compound of interest
+  #coi = "filteredevents_SH_BIO_2196772_3x_vs_SH_DMSO_dPSI0.1_padj0.05_M50_EdPSI0.1_PdPSI0.9.csv"    
+  #coi = "filteredevents_SH_BIO_2196772_10x_vs_SH_DMSO_dPSI0.1_padj0.05_M50_EdPSI0.1_PdPSI0.9.csv"    
+  # fin = dir(din)
+  
+  fin = dir(din , pattern = coi)
+  tbtemp = read.table(paste0(din,fin) ,stringsAsFactors = F,sep = ",",header = 1)
+  head(tbtemp)
+  dim(tbtemp)
+  
+  ## apply thresholding per algorithm ##
+  rm_t = tbtemp[ which( tbtemp$Algorithm ==  "rmats_turbo" & abs(tbtemp$dPSI)       >=  thr_dPSI_rm) , ] #   rm_t = tbtemp[ which( tbtemp$Algorithm ==  "rmats"      & abs(tbtemp$dPSI)       >=  thr_dPSI_rm) , ] 
+  lc_t = tbtemp[ which( tbtemp$Algorithm ==  "leafcutter"  & abs(tbtemp$dPSI)       >=  thr_dPSI_lc) , ]
+  mj_t = tbtemp[ which( tbtemp$Algorithm ==  "majiq_v2"    &     tbtemp$Cutoff_dPSI >=  thr_dPSI_mj) , ] #   mj_t = tbtemp[ which( tbtemp$Algorithm ==  "majiq"      &     tbtemp$Cutoff_dPSI >=  thr_dPSI_mj) , ]
+  
+  head(rm_t)
+  head(lc_t)
+  head(mj_t) #   tail(mj_t)
+  # dim(rm_t)
+  # dim(lc_t)
+  # dim(mj_t)
+  
+  tbtemp_t = rbind(rm_t, lc_t, mj_t)
+  tbtemp_t = tbtemp_t[!(tbtemp_t$geneSymbol ==  ".") ,] #clean up some names
+  # head(tbtemp_t)
+  #  dim(tbtemp_t)
+  #  goi = "HTT"; #   goi = "ATG16L1"; 
+  #  tbtemp_t[which(tbtemp_t$geneSymbol ==  goi) ,]
+  
+  ## extract min-pval-max-dPSI ##  #minmaxtemp = minpdj_maxdPSI( tbtemp = tbtemp_t, colnn = c("genesymbol",paste0("minpadj_maxPdPSI_",coi) , paste0("dPSI_",coi) ) )  ##  == == == == == == == == == == == == == == == == == == Call the function
+  #minmaxtemp = minpdj_maxdPSI_FDR_qual( tbtemp = tbtemp_t, colnn = c("genesymbol",paste0("minpadj_maxPdPSI_",coi_short_names[i]) , paste0("dPSI_",coi_short_names[i]), paste0("Algorithm_",coi_short_names[i]) ) )  ##  == Call the function
+  minmaxtemp = minpdj_maxdPSI_FDR_qual( tbtemp = tbtemp_t, colnn = c("genesymbol",paste0("FDR_equal_",coi_short_names[i]) , paste0("dPSI_",coi_short_names[i]), paste0("Algorithm_",coi_short_names[i]) ) )  ##  == Call the function
+  head(minmaxtemp)
+  dim(minmaxtemp)
+  
+  ## optional: clean up colnames ##
+  colnames(minmaxtemp) = gsub("filteredevents_","", sapply( strsplit( colnames(minmaxtemp) , paste0("_dPSI") ) , "[[", 1) ) #   gsub("filteredevents_TST11742_","", sapply( strsplit( colnames(minmaxtemp) , paste0("_dPSI") ) , "[[", 1) )
+  
+  ## merge ##
+  if(i ==  1){ minmaxall = minmaxtemp
+  } else{  minmaxall = merge(minmaxall, minmaxtemp, by.x = "genesymbol", by.y = "genesymbol" , all = T) }
+}
+
+head(minmaxall) 
+ dim(minmaxall) # [1] [1] 2331   85 for GM GM09677c SMA fibroblasts  cells  *** 2195   61 for SySy5Y cells                                  [2] 162  60 GM cells [1] 249   84 GM cells 
+
+minmaxall_raw = minmaxall
+rownames(minmaxall) = make.names(minmaxall$genesymbol , unique = T)            # should take care     
+minmaxall$genesymbol = NULL 
+
+colnames(minmaxall) 
+row.names(minmaxall) 
+dim(minmaxall)
+minmaxall[1:10, 1:10] # minmaxall_raw[1:10, 1:10] 
+
+any(row.names(minmaxall) %in% "NA")
+any(row.names(minmaxall) %in% "NA.")
+any(row.names(minmaxall) %in% "NA..")
+minmaxall = minmaxall[ !(row.names(minmaxall) %in% c("NA", "NA.", "NA..")), ]
+
+for(i in 1:ncol(minmaxall) ){
+  my_vec = minmaxall[, i]
+  print(i)
+  print(any( is.infinite(my_vec)) )  #   any( is.infinite(my_vec))          68
+}
+
+dim(minmaxall) #  327 126 GM cells
+head(minmaxall) 
+colnames(minmaxall) 
+
+sample_types =  unique( sapply(strsplit( colnames(minmaxall),  split="_\\d{1,2}x_vs_") , `[`, 1) )  #numDSG_DMSO$cellline_dose = sapply(strsplit(numDSG_DMSO$cellline_DMSO, "_vs_") , `[`, 1) 
+sample_types
+
+head( minmaxall[ ,  grepl( "vs_.._DMSO"    , colnames(minmaxall)  ) ]  )# grepl NOT grep  #minmaxall_Ris  = minmaxall[ ,  grepl( "vs_.._1949634" , colnames(minmaxall)  ) ]  # grepl NOT grep
+
+
+############################ 10x experiments + 3x compounds experiments ############################ 10x experiments + 3x Risdiplam experiments 
+getwd()
+
+# ========> Compound 1          2178782
+dPSI_working = BIO_2178782_risdiplam_columns =  minmaxall[ , grep( "dPSI_.*2178782_.*x_vs_GM_DMSO|dPSI_.*1949634_.*x_vs_GM_DMSO"    , colnames(minmaxall)  ) ] 
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+dim(dPSI_working)
+head(dPSI_working)
+
+## ========> ======= venn plot ====##                                  https://finnstats.com/2022/05/09/how-to-create-a-beautiful-venn-diagram-in-r/
+x <- list(
+    Risdiplam_10x_vs_GM_DMSO    = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO ) ), "dPSI_GM_BIO_1949634_10x_vs_GM_DMSO"  , drop = F ] ) ,
+    Risdiplam_3x_vs_GM_DMSO     = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO  ) ), "dPSI_GM_BIO_1949634_3x_vs_GM_DMSO"   , drop = F ] ) ,
+    BIO_2178782_10x_vs_GM_DMS   = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_2178782_10x_vs_GM_DMSO ) ), "dPSI_GM_BIO_2178782_10x_vs_GM_DMSO"  , drop = F ] ) ,
+    BIO_2178782_3x_vs_GM_DMS    = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_2178782_3x_vs_GM_DMSO  ) ), "dPSI_GM_BIO_2178782_3x_vs_GM_DMSO"   , drop = F ] ) ) 
+x
+
+fout = paste0("1_BIO_2178782__DMSO_OVERLAP_Risdiplam_DMSO", ".csv")
+write.csv(dPSI_working,file = fout,quote = F, row.names = T)
+
+png("1_BIO_2178782_vs_Risdiplam.vnn.png", width = 1500, height = 1100) # png("dPSI_working.vnn.png")
+ggVennDiagram(x, label_color = "firebrick" , label_size = 8, set_size = 4, edge_size = 3) + 
+    geom_sf_text( fontface = "bold") + 
+    ggtitle("1_BIO_2178782_vs_Risdiplam VennDiagram") +     # https://venn.bio-spring.top/using-ggvenndiagram      #ggVennDiagram(x, label = "count", label_size = 2 )
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    theme(plot.title = element_text(face = "bold", size = 30) )                                        # ggVennDiagram(x ) + labs(title = "U1_mut1_100 VennDiagram", caption = Sys.Date())
+dev.off()
+
+
+
+# ========> Compound 2   2186827
+dPSI_working = BIO_2186827_risdiplam_columns =  minmaxall[ , grep( "dPSI_.*2186827_.*x_vs_GM_DMSO|dPSI_.*1949634_.*x_vs_GM_DMSO"    , colnames(minmaxall)  ) ] 
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+dim(dPSI_working)
+head(dPSI_working)
+
+## ======= ========> venn plot ====##                                  https://finnstats.com/2022/05/09/how-to-create-a-beautiful-venn-diagram-in-r/
+x <- list(
+    Risdiplam_10x_vs_GM_DMSO    = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO ) ), "dPSI_GM_BIO_1949634_10x_vs_GM_DMSO" , drop = F ] ) ,
+    Risdiplam_3x_vs_GM_DMSO     = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO  ) ), "dPSI_GM_BIO_1949634_3x_vs_GM_DMSO"   , drop = F ] ) ,
+    BIO_2186827_10x_vs_GM_DMS   = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_2186827_10x_vs_GM_DMSO ) ), "dPSI_GM_BIO_2186827_10x_vs_GM_DMSO"     , drop = F ] ) ,
+    BIO_2186827_3x_vs_GM_DMS    = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_2186827_3x_vs_GM_DMSO  ) ), "dPSI_GM_BIO_2186827_3x_vs_GM_DMSO"       , drop = F ] ) ) 
+x
+
+fout = paste0("2_BIO_2186827__DMSO_OVERLAP_Risdiplam_DMSO", ".csv")
+write.csv(dPSI_working,file = fout,quote = F, row.names = T)
+
+png("2_BIO_2186827_vs_Risdiplam.vnn.png", width = 1500, height = 1100) # png("dPSI_working.vnn.png")
+ggVennDiagram(x, label_color = "firebrick" , label_size = 8, set_size = 4, edge_size = 3) + 
+    geom_sf_text( fontface = "bold") + 
+    ggtitle("2_BIO_2186827_vs_Risdiplam VennDiagram") +     # https://venn.bio-spring.top/using-ggvenndiagram      #ggVennDiagram(x, label = "count", label_size = 2 )
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    theme(plot.title = element_text(face = "bold", size = 30) )                                        # ggVennDiagram(x ) + labs(title = "U1_mut1_100 VennDiagram", caption = Sys.Date())
+dev.off()
+
+
+
+# ========> ========> Compound 3          2196772
+dPSI_working = BIO_2196772_risdiplam_columns =  minmaxall[ , grep( "dPSI_.*2196772_.*x_vs_GM_DMSO|dPSI_.*1949634_.*x_vs_GM_DMSO"    , colnames(minmaxall)  ) ] 
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+dim(dPSI_working)
+head(dPSI_working)
+## ========> ======= venn plot ====##                                  https://finnstats.com/2022/05/09/how-to-create-a-beautiful-venn-diagram-in-r/
+x <- list(
+    Risdiplam_10x_vs_GM_DMSO    = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO ) ), "dPSI_GM_BIO_1949634_10x_vs_GM_DMSO" , drop = F ] ) ,
+    Risdiplam_3x_vs_GM_DMSO     = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO  ) ), "dPSI_GM_BIO_1949634_3x_vs_GM_DMSO"   , drop = F ] ) ,
+    BIO_2196772_10x_vs_GM_DMS   = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_2196772_10x_vs_GM_DMSO ) ), "dPSI_GM_BIO_2196772_10x_vs_GM_DMSO"     , drop = F ] ) ,
+    BIO_2196772_3x_vs_GM_DMS    = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_2196772_3x_vs_GM_DMSO  ) ), "dPSI_GM_BIO_2196772_3x_vs_GM_DMSO"       , drop = F ] ) ) 
+x
+
+fout = paste0("3_BIO_2196772__DMSO_OVERLAP_Risdiplam_DMSO", ".csv")
+write.csv(dPSI_working,file = fout,quote = F, row.names = T)
+
+png("3_BIO_2196772_vs_Risdiplam.vnn.png", width = 1500, height = 1100) # png("dPSI_working.vnn.png")
+ggVennDiagram(x, label_color = "firebrick" , label_size = 8, set_size = 4, edge_size = 3) + 
+    geom_sf_text( fontface = "bold") + 
+    ggtitle("3_BIO_2196772_vs_Risdiplam VennDiagram") +     # https://venn.bio-spring.top/using-ggvenndiagram      #ggVennDiagram(x, label = "count", label_size = 2 )
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    theme(plot.title = element_text(face = "bold", size = 30) )                                        # ggVennDiagram(x ) + labs(title = "U1_mut1_100 VennDiagram", caption = Sys.Date())
+dev.off()
+
+
+
+# ========>========> Compound4          2196895
+dPSI_working = BIO_2196895_risdiplam_columns =  minmaxall[ , grep( "dPSI_.*2196895_.*x_vs_GM_DMSO|dPSI_.*1949634_.*x_vs_GM_DMSO"    , colnames(minmaxall)  ) ] 
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+dim(dPSI_working)
+head(dPSI_working)
+## ========>======= venn plot ====##                                  https://finnstats.com/2022/05/09/how-to-create-a-beautiful-venn-diagram-in-r/
+x <- list(
+    Risdiplam_10x_vs_GM_DMSO    = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO ) ), "dPSI_GM_BIO_1949634_10x_vs_GM_DMSO" , drop = F ] ) ,
+    Risdiplam_3x_vs_GM_DMSO     = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO  ) ), "dPSI_GM_BIO_1949634_3x_vs_GM_DMSO"   , drop = F ] ) ,
+    BIO_2196895_10x_vs_GM_DMS   = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_2196895_10x_vs_GM_DMSO ) ), "dPSI_GM_BIO_2196895_10x_vs_GM_DMSO"     , drop = F ] ) ,
+    BIO_2196895_3x_vs_GM_DMS    = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_2196895_3x_vs_GM_DMSO  ) ), "dPSI_GM_BIO_2196895_3x_vs_GM_DMSO"       , drop = F ] ) ) 
+x
+
+fout = paste0("4_BIO_2196895__DMSO_OVERLAP_Risdiplam_DMSO", ".csv")
+write.csv(dPSI_working,file = fout,quote = F, row.names = T)
+
+png("4_BIO_2196895_vs_Risdiplam.vnn.png", width = 1500, height = 1100) # png("dPSI_working.vnn.png")
+ggVennDiagram(x, label_color = "firebrick" , label_size = 8, set_size = 4, edge_size = 3) + 
+    geom_sf_text( fontface = "bold") + 
+    ggtitle("4_BIO_2196895_vs_Risdiplam VennDiagram") +     # https://venn.bio-spring.top/using-ggvenndiagram      #ggVennDiagram(x, label = "count", label_size = 2 )
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    theme(plot.title = element_text(face = "bold", size = 30) )                                        # ggVennDiagram(x ) + labs(title = "U1_mut1_100 VennDiagram", caption = Sys.Date())
+dev.off()
+
+
+# ========>========> Compound 5          2197306
+dPSI_working = BIO_2197306_risdiplam_columns =  minmaxall[ , grep( "dPSI_.*2197306_.*x_vs_GM_DMSO|dPSI_.*1949634_.*x_vs_GM_DMSO"    , colnames(minmaxall)  ) ] 
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+dim(dPSI_working)
+head(dPSI_working)
+## ========>======= venn plot ====##                                  https://finnstats.com/2022/05/09/how-to-create-a-beautiful-venn-diagram-in-r/
+x <- list(
+    Risdiplam_10x_vs_GM_DMSO    = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO ) ), "dPSI_GM_BIO_1949634_10x_vs_GM_DMSO" , drop = F ] ) ,
+    Risdiplam_3x_vs_GM_DMSO     = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO  ) ), "dPSI_GM_BIO_1949634_3x_vs_GM_DMSO"   , drop = F ] ) ,
+    BIO_2197306_10x_vs_GM_DMS   = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_2197306_10x_vs_GM_DMSO ) ), "dPSI_GM_BIO_2197306_10x_vs_GM_DMSO"     , drop = F ] ) ,
+    BIO_2197306_3x_vs_GM_DMS    = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_2197306_3x_vs_GM_DMSO  ) ), "dPSI_GM_BIO_2197306_3x_vs_GM_DMSO"       , drop = F ] ) ) 
+x
+
+fout = paste0("5_BIO_2197306__DMSO_OVERLAP_Risdiplam_DMSO", ".csv")
+write.csv(dPSI_working,file = fout,quote = F, row.names = T)
+
+png("5_BIO_2197306_vs_Risdiplam.vnn.png", width = 1500, height = 1100) # png("dPSI_working.vnn.png")
+ggVennDiagram(x, label_color = "firebrick" , label_size = 8, set_size = 4, edge_size = 3) + 
+    geom_sf_text( fontface = "bold") + 
+    ggtitle("5_BIO_2197306_vs_Risdiplam VennDiagram") +     # https://venn.bio-spring.top/using-ggvenndiagram      #ggVennDiagram(x, label = "count", label_size = 2 )
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    theme(plot.title = element_text(face = "bold", size = 30) )                                        # ggVennDiagram(x ) + labs(title = "U1_mut1_100 VennDiagram", caption = Sys.Date())
+dev.off()
+
+
+
+# ========> Compound 6          2199562
+dPSI_working = BIO_2199562_risdiplam_columns =  minmaxall[ , grep( "dPSI_.*2199562_.*x_vs_GM_DMSO|dPSI_.*1949634_.*x_vs_GM_DMSO"    , colnames(minmaxall)  ) ] 
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+dim(dPSI_working)
+head(dPSI_working)
+## ========> ======= venn plot ====##                                  https://finnstats.com/2022/05/09/how-to-create-a-beautiful-venn-diagram-in-r/
+x <- list(
+    Risdiplam_10x_vs_GM_DMSO    = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO ) ), "dPSI_GM_BIO_1949634_10x_vs_GM_DMSO" , drop = F ] ) ,
+    Risdiplam_3x_vs_GM_DMSO     = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO  ) ), "dPSI_GM_BIO_1949634_3x_vs_GM_DMSO"   , drop = F ] ) ,
+    BIO_2199562_10x_vs_GM_DMS   = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_2199562_10x_vs_GM_DMSO ) ), "dPSI_GM_BIO_2199562_10x_vs_GM_DMSO"     , drop = F ] ) ,
+    BIO_2199562_3x_vs_GM_DMS    = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_2199562_3x_vs_GM_DMSO  ) ), "dPSI_GM_BIO_2199562_3x_vs_GM_DMSO"       , drop = F ] ) ) 
+x
+
+fout = paste0("6_BIO_2199562__DMSO_OVERLAP_Risdiplam_DMSO", ".csv")
+write.csv(dPSI_working,file = fout,quote = F, row.names = T)
+
+png("6_BIO_2199562_vs_Risdiplam.vnn.png", width = 1500, height = 1100) # png("dPSI_working.vnn.png")
+ggVennDiagram(x, label_color = "firebrick" , label_size = 8, set_size = 4, edge_size = 3) + 
+    geom_sf_text( fontface = "bold") + 
+    ggtitle("6_BIO_2199562_vs_Risdiplam VennDiagram") +     # https://venn.bio-spring.top/using-ggvenndiagram      #ggVennDiagram(x, label = "count", label_size = 2 )
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    theme(plot.title = element_text(face = "bold", size = 30) )                                        # ggVennDiagram(x ) + labs(title = "U1_mut1_100 VennDiagram", caption = Sys.Date())
+dev.off()
+
+
+
+#  ========> ========>Compound7          2201042
+dPSI_working = BIO_2201042_risdiplam_columns =  minmaxall[ , grep( "dPSI_.*2201042_.*x_vs_GM_DMSO|dPSI_.*1949634_.*x_vs_GM_DMSO"    , colnames(minmaxall)  ) ] 
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+dim(dPSI_working)
+head(dPSI_working)
+## ======= venn plot ====##                                  https://finnstats.com/2022/05/09/how-to-create-a-beautiful-venn-diagram-in-r/
+x <- list(
+    Risdiplam_10x_vs_GM_DMSO    = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO ) ), "dPSI_GM_BIO_1949634_10x_vs_GM_DMSO" , drop = F ] ) ,
+    Risdiplam_3x_vs_GM_DMSO     = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO  ) ), "dPSI_GM_BIO_1949634_3x_vs_GM_DMSO"   , drop = F ] ) ,
+    BIO_2201042_10x_vs_GM_DMS   = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_2201042_10x_vs_GM_DMSO ) ), "dPSI_GM_BIO_2201042_10x_vs_GM_DMSO"     , drop = F ] ) ,
+    BIO_2201042_3x_vs_GM_DMS    = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_2201042_3x_vs_GM_DMSO  ) ), "dPSI_GM_BIO_2201042_3x_vs_GM_DMSO"       , drop = F ] ) ) 
+x
+
+fout = paste0("7_BIO_2201042__DMSO_OVERLAP_Risdiplam_DMSO", ".csv")
+write.csv(dPSI_working,file = fout,quote = F, row.names = T)
+
+png("7_BIO_2201042_vs_Risdiplam.vnn.png", width = 1500, height = 1100) # png("dPSI_working.vnn.png")
+ggVennDiagram(x, label_color = "firebrick" , label_size = 8, set_size = 4, edge_size = 3) + 
+    geom_sf_text( fontface = "bold") + 
+    ggtitle("7_BIO_2201042_vs_Risdiplam VennDiagram") +     # https://venn.bio-spring.top/using-ggvenndiagram      #ggVennDiagram(x, label = "count", label_size = 2 )
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    theme(plot.title = element_text(face = "bold", size = 30) )                                        # ggVennDiagram(x ) + labs(title = "U1_mut1_100 VennDiagram", caption = Sys.Date())
+dev.off()
+
+
+
+# ========> Compound 8          2204984
+dPSI_working = BIO_2204984_risdiplam_columns =  minmaxall[ , grep( "dPSI_.*2204984_.*x_vs_GM_DMSO|dPSI_.*1949634_.*x_vs_GM_DMSO"    , colnames(minmaxall)  ) ] 
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+dim(dPSI_working)
+head(dPSI_working)
+## ======= venn plot ====##                                  https://finnstats.com/2022/05/09/how-to-create-a-beautiful-venn-diagram-in-r/
+x <- list(
+    Risdiplam_10x_vs_GM_DMSO    = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO ) ), "dPSI_GM_BIO_1949634_10x_vs_GM_DMSO" , drop = F ] ) ,
+    Risdiplam_3x_vs_GM_DMSO     = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO  ) ), "dPSI_GM_BIO_1949634_3x_vs_GM_DMSO"   , drop = F ] ) ,
+    BIO_2204984_10x_vs_GM_DMS   = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_2204984_10x_vs_GM_DMSO ) ), "dPSI_GM_BIO_2204984_10x_vs_GM_DMSO"     , drop = F ] ) ,
+    BIO_2204984_3x_vs_GM_DMS    = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_2204984_3x_vs_GM_DMSO  ) ), "dPSI_GM_BIO_2204984_3x_vs_GM_DMSO"       , drop = F ] ) ) 
+x
+
+fout = paste0("8_BIO_2204984__DMSO_OVERLAP_Risdiplam_DMSO", ".csv")
+write.csv(dPSI_working,file = fout,quote = F, row.names = T)
+
+png("8_BIO_2204984_vs_Risdiplam.vnn.png", width = 1500, height = 1100) # png("dPSI_working.vnn.png")
+ggVennDiagram(x, label_color = "firebrick" , label_size = 8, set_size = 4, edge_size = 3) + 
+    geom_sf_text( fontface = "bold") + 
+    ggtitle("8_BIO_2204984_vs_Risdiplam VennDiagram") +     # https://venn.bio-spring.top/using-ggvenndiagram      #ggVennDiagram(x, label = "count", label_size = 2 )
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    theme(plot.title = element_text(face = "bold", size = 30) )                                        # ggVennDiagram(x ) + labs(title = "U1_mut1_100 VennDiagram", caption = Sys.Date())
+dev.off()
+
+
+
+# ========> Compound9          2178782
+dPSI_working = BIO_2178782_risdiplam_columns =  minmaxall[ , grep( "dPSI_.*2178782_.*x_vs_GM_DMSO|dPSI_.*1949634_.*x_vs_GM_DMSO"    , colnames(minmaxall)  ) ] 
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+dim(dPSI_working)
+head(dPSI_working)
+## ======= venn plot ====##                                  https://finnstats.com/2022/05/09/how-to-create-a-beautiful-venn-diagram-in-r/
+x <- list(
+    Risdiplam_10x_vs_GM_DMSO    = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO ) ), "dPSI_GM_BIO_1949634_10x_vs_GM_DMSO" , drop = F ] ) ,
+    Risdiplam_3x_vs_GM_DMSO     = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO  ) ), "dPSI_GM_BIO_1949634_3x_vs_GM_DMSO"   , drop = F ] ) ,
+    BIO_2178782_10x_vs_GM_DMS   = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_2178782_10x_vs_GM_DMSO ) ), "dPSI_GM_BIO_2178782_10x_vs_GM_DMSO"     , drop = F ] ) ,
+    BIO_2178782_3x_vs_GM_DMS    = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_2178782_3x_vs_GM_DMSO  ) ), "dPSI_GM_BIO_2178782_3x_vs_GM_DMSO"       , drop = F ] ) ) 
+x
+
+fout = paste0("9_BIO_2178782__DMSO_OVERLAP_Risdiplam_DMSO", ".csv")
+write.csv(dPSI_working,file = fout,quote = F, row.names = T)
+
+png("9_BIO_2178782_vs_Risdiplam.vnn.png", width = 1500, height = 1100) # png("dPSI_working.vnn.png")
+ggVennDiagram(x, label_color = "firebrick" , label_size = 8, set_size = 4, edge_size = 3) + 
+    geom_sf_text( fontface = "bold") + 
+    ggtitle("9_BIO_2178782_vs_Risdiplam VennDiagram") +     # https://venn.bio-spring.top/using-ggvenndiagram      #ggVennDiagram(x, label = "count", label_size = 2 )
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    theme(plot.title = element_text(face = "bold", size = 30) )                                        # ggVennDiagram(x ) + labs(title = "U1_mut1_100 VennDiagram", caption = Sys.Date())
+dev.off()
+
+
+
+# ========> Compound10          2207180
+dPSI_working = BIO_2207180_risdiplam_columns =  minmaxall[ , grep( "dPSI_.*2207180_.*x_vs_GM_DMSO|dPSI_.*1949634_.*x_vs_GM_DMSO"    , colnames(minmaxall)  ) ] 
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+dim(dPSI_working)
+head(dPSI_working)
+## ======= venn plot ====##                                  https://finnstats.com/2022/05/09/how-to-create-a-beautiful-venn-diagram-in-r/
+x <- list(
+    Risdiplam_10x_vs_GM_DMSO    = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO ) ), "dPSI_GM_BIO_1949634_10x_vs_GM_DMSO" , drop = F ] ) ,
+    Risdiplam_3x_vs_GM_DMSO     = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO  ) ), "dPSI_GM_BIO_1949634_3x_vs_GM_DMSO"   , drop = F ] ) ,
+    BIO_2207180_10x_vs_GM_DMS   = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_2207180_10x_vs_GM_DMSO ) ), "dPSI_GM_BIO_2207180_10x_vs_GM_DMSO"     , drop = F ] ) ,
+    BIO_2207180_3x_vs_GM_DMS    = row.names( dPSI_working[ which( !is.na(dPSI_working$dPSI_GM_BIO_2207180_3x_vs_GM_DMSO  ) ), "dPSI_GM_BIO_2207180_3x_vs_GM_DMSO"       , drop = F ] ) ) 
+x
+
+fout = paste0("10_BIO_2207180__DMSO_OVERLAP_Risdiplam_DMSO", ".csv")
+write.csv(dPSI_working,file = fout,quote = F, row.names = T)
+
+png("10_BIO_2207180_vs_Risdiplam.vnn.png", width = 1500, height = 1100) # png("dPSI_working.vnn.png")
+ggVennDiagram(x, label_color = "firebrick" , label_size = 8, set_size = 4, edge_size = 3) + 
+    geom_sf_text( fontface = "bold") + 
+    ggtitle("10_BIO_2207180_vs_Risdiplam VennDiagram") +     # https://venn.bio-spring.top/using-ggvenndiagram      #ggVennDiagram(x, label = "count", label_size = 2 )
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    theme(plot.title = element_text(face = "bold", size = 30) )                                        # ggVennDiagram(x ) + labs(title = "U1_mut1_100 VennDiagram", caption = Sys.Date())
+dev.off()
+
+############################ 10x experiments + 3x compounds experiments ############################ 10x experiments + 3x Risdiplam experiments 
+
+
+## run.06.DSG_counts_minmaxtable_coorelationlot8.R
+rm(list = ls()) #install.packages("ggVennDiagram") # 15min# #rm(list = "line") #install.packages("ggVennDiagram") # 15min#
+R.Version()
+library(ggplot2)
+library(dplyr)
+library(ggrepel) # https://cran.r-project.org/web/packages/ggrepel/vignettes/ggrepel.html
+set.seed(42)
+
+din     = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230921054434_Zhen.Gao_GMfibro_3vs3/DSG_Result/From_DNANenxs_Master_3vs3_09-25/"
+#out_dir = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230921054434_Zhen.Gao_GMfibro_3vs3/DSG_Result/splicing_offtargets_3vs3_09-30_abs_dPSI_plotting/10x_dose/dPSI_0.1/" #splicing_offtargets_3vs3_09-29_abs_dPSI/" #_09-28_
+out_dir = "/edgehpc/dept/compbio/projects/TST12188/dnanexus/20230921054434_Zhen.Gao_GMfibro_3vs3/DSG_Result/splicing_offtargets_3vs3_09-30_abs_dPSI_plotting/3x_dose/dPSI_0.1/" #splicing_offtargets_3vs3_09-29_abs_dPSI/" #_09-28_
+
+dir.create(out_dir, recursive = T)
+setwd(out_dir)
+
+pformat = "/edgehpc/dept/compbio/users/dhuh/software/R/R_modified/pformat_whitebG.r"
+jet     = colorRampPalette(c("blue","green","yellow","orange","darkred")) # make gradient of colors #brightjet = colorRampPalette(c("#007FFF", "cyan","#7FFF7F", "yellow", "#FF7F00","#FF3535")) # make gradient of colors
+
+######################
+minpdj_maxdPSI_FDR_qual = function(tbtemp, colnn){         ##==09-28-all abs() ZG
+    #i
+    gn = unique(tbtemp$geneSymbol)
+
+    if( sum(gn  == ".") > 0 ){ gn = gn[ !(gn  == ".") ] }  # remove un-annotated genes
+    
+    minmaxcum = as.data.frame( matrix(0, nrow = length(gn) , ncol = 4 ) )      #  3 add algorithm =======> ZG 2023-10-05
+    colnames(minmaxcum) = colnn 
+    minmaxcum$genesymbol = gn
+    minmaxcum
+    
+    for(i in 1:length(gn)){
+        #             i
+        gntemp = gn[i]    #gntemp = "HTT"     #gntemp = "SMN1"     #gntemp = "SMN2"
+        
+        tbtemp2 = tbtemp[ which(tbtemp$geneSymbol ==  gntemp) , ]
+        
+        if(nrow(tbtemp2) ==  1){          
+            
+            dPSItemp        = abs( tbtemp2$dPSI )
+            algorithem_used = tbtemp2$Algorithm             # for majiq, keep PdPSI. =======> ZG 2023-10-05
+            
+            if(tbtemp2$Algorithm ==  "majiq_v2"){                                                #  from "majiq" 
+                padj_PdPSI = 1- tbtemp2$PdPSI                               # for majiq, keep PdPSI. =======> ZG 2023-10-05
+            }else{
+                padj_PdPSI = tbtemp2$FDR                                     # for rmats and leafcutter keep padj
+            }
+            
+        }else{                                             # if there are more than two rows of goi (gene of interest) 
+            
+            rn_minpadj = which( tbtemp2$FDR == min( tbtemp2$FDR, na.rm = T) ) 
+            tbtemp3 = tbtemp2[ rn_minpadj, ]
+            
+            if(nrow(tbtemp3) ==  0){                # if there's no min, it's all majiq, with multiple lines
+                rn_maxpdpsi = which(tbtemp2$PdPSI  == max(tbtemp2$PdPSI, na.rm = T)  ) # ..get the max(PdPSI)
+                tbtemp3 = tbtemp2[rn_maxpdpsi,]
+                
+                if(nrow(tbtemp3) ==  1){                     # if there's only one max PdPSI
+                    dPSItemp =  abs( tbtemp3$dPSI )
+                    padj_PdPSI = 1- tbtemp3$PdPSI              # for majiq, keep PdPSI. =======> ZG 2023-10-05
+                    algorithem_used = tbtemp3$Algorithm     ####=======>>
+                }else{                                     #if there's more than on max dPSI
+                    dPSItemp = max( abs( tbtemp3$dPSI) )  # pick the max(dPSI)
+                    padj_PdPSI = 1- tbtemp3$PdPSI[1]
+                    algorithem_used = tbtemp3$Algorithm[1]  ####=======>>
+                }
+                
+            }else if( nrow(tbtemp3) ==  1){       # if there's only one min (either rmats or leafcutter, no majiq)
+                dPSItemp   = abs( tbtemp3$dPSI )
+                padj_PdPSI = tbtemp3$FDR
+                algorithem_used = tbtemp3$Algorithm     ####=======>>
+            }else{                                    # more than 1 min, pick max(dPSI). both are either rmats or leafcutter. 
+                dPSItemp = max( abs( tbtemp3$dPSI) )
+                padj_PdPSI = tbtemp3$FDR[1]
+                algorithem_used = tbtemp3$Algorithm[1]     ####=======>>
+            }
+        }
+        minmaxcum[i, 2] = padj_PdPSI
+        minmaxcum[i, 3] = dPSItemp
+        minmaxcum[i, 4] = algorithem_used
+        
+    }
+    
+    print(minmaxcum[i,])
+    return(minmaxcum)
+}
+
+coi_ar = dir(din, pattern = "dPSI0.1")    # all compounds, dPSI>0.1 #coi_ar = dir(din)
+### the following step must be checked !!
+coi_short_names = gsub( "_dPSI0.1_padj0.05_M50_EdPSI0.1_PdPSI0.9.csv" ,  "" , coi_ar )
+coi_short_names = gsub( "filteredevents_" ,  "" , coi_short_names )
+coi_short_names
+
+thr_dPSI_rm = 0.3; 
+thr_dPSI_lc = 0.25; 
+thr_dPSI_mj = 0.3;
+
+param = paste0("dPSIrm",thr_dPSI_rm,"_dPSIlc",thr_dPSI_lc,"_padj0.05_EdPSI",thr_dPSI_mj,"_PdPSI0.9_M50") # for fout
+
+### minpadj per gene ####################
+minmaxall = c()
+
+for(i in 1:length(coi_ar)){
+    #      i = 1
+    coi = coi_ar[i] # compound of interest
+    
+    fin = dir(din , pattern = coi)
+    tbtemp = read.table(paste0(din,fin) ,stringsAsFactors = F,sep = ",",header = 1)
+    head(tbtemp)
+    dim(tbtemp)
+    
+    rm_t = tbtemp[ which( tbtemp$Algorithm ==  "rmats_turbo" & abs(tbtemp$dPSI)       >=  thr_dPSI_rm) , ] #   rm_t = tbtemp[ which( tbtemp$Algorithm ==  "rmats"      & abs(tbtemp$dPSI)       >=  thr_dPSI_rm) , ] 
+    lc_t = tbtemp[ which( tbtemp$Algorithm ==  "leafcutter"  & abs(tbtemp$dPSI)       >=  thr_dPSI_lc) , ]
+    mj_t = tbtemp[ which( tbtemp$Algorithm ==  "majiq_v2"    &     tbtemp$Cutoff_dPSI >=  thr_dPSI_mj) , ] #   mj_t = tbtemp[ which( tbtemp$Algorithm ==  "majiq"      &     tbtemp$Cutoff_dPSI >=  thr_dPSI_mj) , ]
+    
+    head(rm_t)
+    head(lc_t)
+    head(mj_t) #   tail(mj_t)
+    
+    tbtemp_t = rbind(rm_t, lc_t, mj_t)
+    tbtemp_t = tbtemp_t[!(tbtemp_t$geneSymbol ==  ".") ,] #clean up some names   # head(tbtemp_t)   #  dim(tbtemp_t)   #  goi = "HTT"; #   goi = "ATG16L1";   #  tbtemp_t[which(tbtemp_t$geneSymbol ==  goi) ,]
+    
+    minmaxtemp = minpdj_maxdPSI_FDR_qual( tbtemp = tbtemp_t, colnn = c("genesymbol",paste0("FDR_equal_",coi_short_names[i]) , paste0("dPSI_",coi_short_names[i]), paste0("Algorithm_",coi_short_names[i]) ) )  ##  == Call the function
+    head(minmaxtemp)
+    dim(minmaxtemp)
+    
+    colnames(minmaxtemp) = gsub("filteredevents_","", sapply( strsplit( colnames(minmaxtemp) , paste0("_dPSI") ) , "[[", 1) ) #   gsub("filteredevents_TST11742_","", sapply( strsplit( colnames(minmaxtemp) , paste0("_dPSI") ) , "[[", 1) )
+    #colnames(minmaxtemp) = gsub("BIO_","",  colnames(minmaxtemp)  ) 
+  
+    ## merge ##
+    if(i ==  1){ minmaxall = minmaxtemp
+    } else{  minmaxall = merge(minmaxall, minmaxtemp, by.x = "genesymbol", by.y = "genesymbol" , all = T) }
+}
+
+head(minmaxall) 
+dim(minmaxall) # [1] [1] 2331   85 for GM GM09677c SMA fibroblasts  cells  *** 2195   61 for SySy5Y cells                                  [2] 162  60 GM cells [1] 249   84 GM cells 
+
+minmaxall_raw = minmaxall
+rownames(minmaxall) = make.names(minmaxall$genesymbol , unique = T)            # should take care     
+minmaxall$genesymbol = NULL 
+
+colnames(minmaxall) 
+row.names(minmaxall) 
+minmaxall[1:10, 1:10] 
+minmaxall_raw[1:10, 1:10] 
+
+## ==(1)==  Quality Assurance 1: check if NA used as gene name 
+any(row.names(minmaxall) %in% "NA")
+any(row.names(minmaxall) %in% "NA.")
+any(row.names(minmaxall) %in% "NA..")
+minmaxall = minmaxall[ !(row.names(minmaxall) %in% c("NA", "NA.", "NA..")), ]
+
+## =(2)==  Quality Assurance 2: check infinite in each column 
+for(i in 1:ncol(minmaxall) ){
+    my_vec = minmaxall[, i]
+    print(i)
+    #print(minmaxall[, i])
+    print(any( is.infinite(my_vec) ) )  #   any( is.infinite(my_vec))           68
+}
+# i     # ==126
+# i=1
+
+dim(minmaxall) #  378 3vs3 126 GM cells    328 126 GM cells
+head(minmaxall) 
+colnames(minmaxall) 
+minmaxall[1:20, 1:6] 
+
+
+minpdj_maxdPSI_FDR_qual_table_fill = function(  minmaxall_passed  , tbtemp , colnn   ){         ##==09-28-all abs() ZG  #minmaxall_updated = minmaxall_passed
+    
+    for(line in 1:nrow( minmaxall_passed )){                                    #
+
+        print(line)
+        gntemp = row.names(minmaxall_passed)[line]                              #         minmaxall_passed[i,]         #gntemp = "HTT"         #gntemp = "SMN1"         #gntemp = "SMN2"
+
+        if(  ! gntemp %in% tbtemp$geneSymbol   ) {
+            #pass 
+        } else if(  ! is.na( minmaxall_passed[ line,  colnn[3] ] )  ) { 
+            #pass
+        } else if(  is.na( minmaxall_passed[ line,  colnn[3] ] )  ){    
+
+            tbtemp2 = tbtemp[ which(tbtemp$geneSymbol ==  gntemp) , ]
+            
+            if( nrow(tbtemp2) ==  1 ){                         
+                
+                dPSItemp        = abs( tbtemp2$dPSI )
+                algorithem_used = tbtemp2$Algorithm             
+                
+                if(tbtemp2$Algorithm ==  "majiq_v2"){                                                #  from "majiq" 
+                    padj_PdPSI = 1- tbtemp2$PdPSI                               # for majiq 
+                }else{
+                    padj_PdPSI = tbtemp2$FDR                                    # for rmats and leafcutter keep padj
+                }
+                
+            }else{                                                              # if there are more than two rows of goi (gene of interest) , find either "min" padj or max PdPSI 
+                
+                rn_minpadj = which( tbtemp2$FDR == min( tbtemp2$FDR, na.rm = T) ) 
+                tbtemp3 = tbtemp2[ rn_minpadj, ]
+                
+                if( nrow(tbtemp3) ==  0){                # if there's no min, it's all majiq, with multiple lines
+                    rn_maxpdpsi = which(tbtemp2$PdPSI  == max(tbtemp2$PdPSI, na.rm = T)  ) # ..get the max(PdPSI)
+                    tbtemp3 = tbtemp2[rn_maxpdpsi,]
+                    
+                    if( nrow(tbtemp3) ==  1){       # if there's only one max PdPSI
+                        dPSItemp =  abs( tbtemp3$dPSI )
+                        padj_PdPSI = 1- tbtemp3$PdPSI                           # for majiq, keep PdPSI. =======> ZG 2023-10-05
+                        algorithem_used = tbtemp3$Algorithm     ####=======>>
+                    }else{                         #if there's more than on max dPSI
+                        dPSItemp = max( abs( tbtemp3$dPSI) )  # pick the max(dPSI)
+                        padj_PdPSI = 1- tbtemp3$PdPSI[1]
+                        algorithem_used = tbtemp3$Algorithm[1]  ####=======>>
+                    }
+                    
+                }else if( nrow(tbtemp3) ==  1){       # if there's only one min (either rmats or leafcutter, no majiq)
+                    dPSItemp   = abs( tbtemp3$dPSI )
+                    padj_PdPSI = tbtemp3$FDR
+                    algorithem_used = tbtemp3$Algorithm     ####=======>>
+                }else{                          # more than 1 min, pick max(dPSI). both are either rmats or leafcutter. 
+                    dPSItemp = max( abs( tbtemp3$dPSI) )
+                    padj_PdPSI = tbtemp3$FDR[1]
+                    algorithem_used = tbtemp3$Algorithm[1]     ####=======>>
+                }
+                
+            }
+            
+        minmaxall_updated[ line,  ] 
+        minmaxall_updated[ line, colnn[2] ] = padj_PdPSI
+        minmaxall_updated[ line, colnn[3] ] = dPSItemp
+        minmaxall_updated[ line, colnn[4] ] = algorithem_used
+        }
+    }
+    return(minmaxall_updated) #NO return value, just update the data minmaxall_updated
+}
+
+###### replace all NA with the raw-data of each samples  +++++++++= Dann's Idea 
+FDR_equal_thresh = 0.05; 
+
+for(i in 1:length(coi_ar)){
+    #                i = 1 ;  i= i+1
+    coi = coi_ar[i] # compound of interest
+    fin = dir(din , pattern = coi)
+    tbtemp = read.table(paste0(din,fin) ,stringsAsFactors = F,sep = ",",header = 1) 
+    head(tbtemp)
+    dim(tbtemp)                             # [1] 600  18
+    
+    rm_a = tbtemp[ which( tbtemp$Algorithm ==  "rmats_turbo" & tbtemp$FDR       <=  FDR_equal_thresh) , ] #  
+    lc_a = tbtemp[ which( tbtemp$Algorithm ==  "leafcutter"  & tbtemp$FDR       <=  FDR_equal_thresh) , ]
+    mj_a = tbtemp[ which( tbtemp$Algorithm ==  "majiq_v2"    & (1-tbtemp$PdPSI) <=  FDR_equal_thresh) , ] #  
+    
+    head(rm_a)
+    head(lc_a)
+    head(mj_a) #   tail(mj_a)
+    
+    tbtemp_a = rbind(rm_a, lc_a, mj_a) #         tbtemp_a = tbtemp_a[!(tbtemp_a$geneSymbol ==  ".") ,] #clean up some names
+    
+    
+    if(i ==  1){ 
+        minmaxall_updated = minmaxall
+    } else{  
+        minmaxall_updated =  minmaxtemp_filled
+    }
+    
+    minmaxtemp_filled =  minpdj_maxdPSI_FDR_qual_table_fill( minmaxall_passed =   minmaxall_updated , tbtemp = tbtemp_a , colnn = c("genesymbol",paste0("FDR_equal_",coi_short_names[i]) , paste0("dPSI_",coi_short_names[i]), paste0("Algorithm_",coi_short_names[i] ) ) )  ##  == Call the function
+}
+
+minmaxall[1:50, 1:6]
+minmaxtemp_filled[1:50, 1:6]
+minmaxtemp_filled[1:6,]
+minmaxtemp_filled[1:50, grep( "dPSI" , colnames(minmaxtemp_filled))]
+minmaxtemp_filled[1:50, grep( "2178782" , colnames(minmaxtemp_filled))]
+minmaxtemp_filled[1:50, grep( "2197306" , colnames(minmaxtemp_filled))]
+#getwd()
+
+minmaxall = minmaxtemp_filled
+
+head(minmaxall) 
+dim(minmaxall) # [1] [1] 2331   85 for GM GM09677c SMA fibroblasts  cells  *** 2195   61 for SySy5Y cells                                  [2] 162  60 GM cells [1] 249   84 GM cells 
+
+getwd()
+
+fout = paste0("summarytable_with_gene_dPSI_0.1", "_GMfibro_3vs3" ,".csv")
+write.csv(minmaxall,file = fout,quote = F, row.names = T)
+
+sample_types =  unique( sapply(strsplit( colnames(minmaxall),  split="_\\d{1,2}x_vs_") , `[`, 1) )  #numDSG_DMSO$cellline_dose = sapply(strsplit(numDSG_DMSO$cellline_DMSO, "_vs_") , `[`, 1) 
+sample_types
+
+head( minmaxall[ ,  grepl( "vs_.._DMSO"    , colnames(minmaxall)  ) ]  )# grepl NOT grep  #minmaxall_Ris  = minmaxall[ ,  grepl( "vs_.._1949634" , colnames(minmaxall)  ) ]  # grepl NOT grep
+
+######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x
+######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x ######## 10x
+
+Compounds_10x_vs_GM_DMSO = minmaxall[ ,  grepl( "_10x_vs_GM_DMSO"    , colnames(minmaxall)  ) ]  # grepl NOT grep  #minmaxall_Ris  = minmaxall[ ,  grepl( "vs_.._1949634" , colnames(minmaxall)  ) ]  # grepl NOT grep
+dim(Compounds_10x_vs_GM_DMSO)
+head(Compounds_10x_vs_GM_DMSO)
+Compounds_10x_vs_GM_DMSO[1:2, ]
+
+# Compound1          2178782 =============>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.
+dPSI_working = BIO_2178782_risdiplam_columns =  Compounds_10x_vs_GM_DMSO[ , grep( "2178782_..x_vs_|1949634_..x_vs_"    , colnames(Compounds_10x_vs_GM_DMSO)  ) ] # head(BIO_2178782_risdiplam_columns)
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+head(dPSI_working, 2)
+dPSI_working[1:2,]
+
+dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2178782_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2178782_10x_vs_GM_DMSO)] <- 0
+
+getwd()
+fout = "Compound1_BIO_2178782_10x_VS_Risdiplam_in_DMSO.png"
+png(fout, height = 1200, width = 1200)            #png(fout,height = 500, width = length(y)*50)
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2178782_10x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_10x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2178782_10x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_10x_vs_GM_DMSO ) )  +
+    geom_point(size=5) + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+         y ="Risdiplam 10x dPSI vs DMSO") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic", hjust = 0.5),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold")
+    )
+dev.off()
+
+
+# Compound2       2186827
+dPSI_working = BIO_2186827_risdiplam_columns =  Compounds_10x_vs_GM_DMSO[ , grep( "2186827_..x_vs_|1949634_..x_vs_"    , colnames(Compounds_10x_vs_GM_DMSO)  ) ] # head(BIO_2186827_risdiplam_columns)
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+head(dPSI_working, 2)
+dPSI_working[1:2,]
+
+dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2186827_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2186827_10x_vs_GM_DMSO)] <- 0
+
+getwd()
+fout = "Compound2_BIO_2186827_10x_VS_Risdiplam_in_DMSO.png"
+png(fout, height = 1200, width = 1200)            #png(fout,height = 500, width = length(y)*50)
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2186827_10x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_10x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2186827_10x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_10x_vs_GM_DMSO ) )  +
+    geom_point(size=5) + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+         y ="Risdiplam 10x dPSI vs DMSO") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic", hjust = 0.5),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold")
+    )
+dev.off()
+
+# Compound3        2196772
+dPSI_working = BIO_2196772_risdiplam_columns =  Compounds_10x_vs_GM_DMSO[ , grep( "2196772_..x_vs_|1949634_..x_vs_"    , colnames(Compounds_10x_vs_GM_DMSO)  ) ] # head(BIO_2196772_risdiplam_columns)
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+head(dPSI_working, 2)
+dPSI_working[1:2,]
+
+dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2196772_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2196772_10x_vs_GM_DMSO)] <- 0
+
+getwd()
+fout = "Compound3_BIO_2196772_10x_VS_Risdiplam_in_DMSO.png"
+png(fout, height = 1200, width = 1200)            #png(fout,height = 500, width = length(y)*50)
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2196772_10x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_10x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2196772_10x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_10x_vs_GM_DMSO ) )  +
+    geom_point(size=5) + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+         y ="Risdiplam 10x dPSI vs DMSO") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic", hjust = 0.5),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold")
+    )
+dev.off()
+
+# Compound4 2196895
+dPSI_working = BIO_2196895_risdiplam_columns =  Compounds_10x_vs_GM_DMSO[ , grep( "2196895_..x_vs_|1949634_..x_vs_"    , colnames(Compounds_10x_vs_GM_DMSO)  ) ] 
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+head(dPSI_working, 2)
+dPSI_working[1:2,]
+
+dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2196895_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2196895_10x_vs_GM_DMSO)] <- 0
+
+dPSI_working
+
+# TPTEP2                                 1.199514e-02                          0.7925311                              leafcutter                            7.200000e-03                          0.4197000                                majiq_v2 ?????
+
+###### change x -limit
+getwd()
+fout = "Compound4_BIO_2196895_10x_VS_Risdiplam_in_DMSO_full.png"
+png(fout, height = 1200, width = 1200)            #png(fout,height = 500, width = length(y)*50)
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2196895_10x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_10x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2196895_10x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_10x_vs_GM_DMSO ) )  +
+    geom_point(size=5) + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+         y ="Risdiplam 10x dPSI vs DMSO") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic", hjust = 0.5),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold") 
+    ) + scale_x_continuous(limits = c(0, 0.8))     #+ scale_y_continuous(limits = c(0, 1))
+dev.off()
+
+# Compound5 2197306
+dPSI_working = BIO_2197306_risdiplam_columns =  Compounds_10x_vs_GM_DMSO[ , grep( "2197306_..x_vs_|1949634_..x_vs_"    , colnames(Compounds_10x_vs_GM_DMSO)  ) ] # head(BIO_2197306_risdiplam_columns)
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+head(dPSI_working, 2)
+dPSI_working[1:2,]
+
+dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2197306_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2197306_10x_vs_GM_DMSO)] <- 0
+
+getwd()
+fout = "Compound5_BIO_2197306_10x_VS_Risdiplam_in_DMSO.png"
+png(fout, height = 1200, width = 1200)            #png(fout,height = 500, width = length(y)*50)
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2197306_10x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_10x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2197306_10x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_10x_vs_GM_DMSO ) )  +
+    geom_point(size=5) + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+         y ="Risdiplam 10x dPSI vs DMSO") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic", hjust = 0.5),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold")
+    )
+dev.off()
+
+# Compound6 2199562
+dPSI_working = BIO_2199562_risdiplam_columns =  Compounds_10x_vs_GM_DMSO[ , grep( "2199562_..x_vs_|1949634_..x_vs_"    , colnames(Compounds_10x_vs_GM_DMSO)  ) ] # head(BIO_2199562_risdiplam_columns)
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+head(dPSI_working, 2)
+dPSI_working[1:2,]
+
+dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2199562_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2199562_10x_vs_GM_DMSO)] <- 0
+
+getwd()
+fout = "Compound6_BIO_2199562_10x_VS_Risdiplam_in_DMSO.png"
+png(fout, height = 1200, width = 1200)            #png(fout,height = 500, width = length(y)*50)
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2199562_10x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_10x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2199562_10x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_10x_vs_GM_DMSO ) )  +
+    geom_point(size=5) + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+         y ="Risdiplam 10x dPSI vs DMSO") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic", hjust = 0.5),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold")
+    )
+dev.off()
+
+# Compound7 2201042
+dPSI_working = BIO_2201042_risdiplam_columns =  Compounds_10x_vs_GM_DMSO[ , grep( "2201042_..x_vs_|1949634_..x_vs_"    , colnames(Compounds_10x_vs_GM_DMSO)  ) ] # head(BIO_2201042_risdiplam_columns)
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+head(dPSI_working, 2)
+dPSI_working[1:2,]
+
+dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2201042_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2201042_10x_vs_GM_DMSO)] <- 0
+
+getwd()
+fout = "Compound7_BIO_2201042_10x_VS_Risdiplam_in_DMSO.png"
+png(fout, height = 1200, width = 1200)            #png(fout,height = 500, width = length(y)*50)
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2201042_10x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_10x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2201042_10x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_10x_vs_GM_DMSO ) )  +
+    geom_point(size=5) + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+         y ="Risdiplam 10x dPSI vs DMSO") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic", hjust = 0.5),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold")
+    )
+dev.off()
+
+# Compound8    2204984
+dPSI_working = BIO_2204984_risdiplam_columns =  Compounds_10x_vs_GM_DMSO[ , grep( "2204984_..x_vs_|1949634_..x_vs_"    , colnames(Compounds_10x_vs_GM_DMSO)  ) ] # head(BIO_2204984_risdiplam_columns)
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+head(dPSI_working, 2)
+dPSI_working[1:2,]
+
+dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2204984_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2204984_10x_vs_GM_DMSO)] <- 0
+
+getwd()
+fout = "Compound8_BIO_2204984_10x_VS_Risdiplam_in_DMSO.png"
+png(fout, height = 1200, width = 1200)            #png(fout,height = 500, width = length(y)*50)
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2204984_10x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_10x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2204984_10x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_10x_vs_GM_DMSO ) )  +
+    geom_point(size=5) + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+         y ="Risdiplam 10x dPSI vs DMSO") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic", hjust = 0.5),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold")
+    )
+dev.off()
+
+# Compound9  2206678
+dPSI_working = BIO_2206678_risdiplam_columns =  Compounds_10x_vs_GM_DMSO[ , grep( "2206678_..x_vs_|1949634_..x_vs_"    , colnames(Compounds_10x_vs_GM_DMSO)  ) ] # head(BIO_2206678_risdiplam_columns)
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+head(dPSI_working, 2)
+dPSI_working[1:2,]
+
+dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2206678_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2206678_10x_vs_GM_DMSO)] <- 0
+
+getwd()
+fout = "Compound9_BIO_2206678_10x_VS_Risdiplam_in_DMSO.png"
+png(fout, height = 1200, width = 1200)            #png(fout,height = 500, width = length(y)*50)
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2206678_10x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_10x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2206678_10x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_10x_vs_GM_DMSO ) )  +
+    geom_point(size=5) + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+         y ="Risdiplam 10x dPSI vs DMSO") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic", hjust = 0.5),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold")
+    )
+dev.off()
+
+# Compound10 2207180
+dPSI_working = BIO_2207180_risdiplam_columns =  Compounds_10x_vs_GM_DMSO[ , grep( "2207180_..x_vs_|1949634_..x_vs_"    , colnames(Compounds_10x_vs_GM_DMSO)  ) ] # head(BIO_2207180_risdiplam_columns)
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+head(dPSI_working, 2)
+dPSI_working[1:2,]
+
+dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_10x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2207180_10x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2207180_10x_vs_GM_DMSO)] <- 0
+
+getwd()
+fout = "Compound10_BIO_2207180_10x_VS_Risdiplam_in_DMSO.png"
+png(fout, height = 1200, width = 1200)            #png(fout,height = 500, width = length(y)*50)
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2207180_10x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_10x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2207180_10x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_10x_vs_GM_DMSO ) )  +
+    geom_point(size=5) + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+         y ="Risdiplam 10x dPSI vs DMSO") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic", hjust = 0.5),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold")
+    )
+dev.off()
+
+
+######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x
+######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x ######## 3x
+
+Compounds_3x_vs_GM_DMSO = minmaxall[ ,  grepl( "_3x_vs_GM_DMSO"    , colnames(minmaxall)  ) ]  # grepl NOT grep  #minmaxall_Ris  = minmaxall[ ,  grepl( "vs_.._1949634" , colnames(minmaxall)  ) ]  # grepl NOT grep
+dim(Compounds_3x_vs_GM_DMSO)
+head(Compounds_3x_vs_GM_DMSO)
+Compounds_3x_vs_GM_DMSO[1:2, ]
+
+# Compound1          2178782 =============>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.
+dPSI_working = BIO_2178782_risdiplam_columns =  Compounds_3x_vs_GM_DMSO[ , grep( "2178782_.x_vs_|1949634_.x_vs_"    , colnames(Compounds_3x_vs_GM_DMSO)  ) ] # head(BIO_2178782_risdiplam_columns)
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+head(dPSI_working, 2)
+dPSI_working[1:2,]
+
+dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2178782_3x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2178782_3x_vs_GM_DMSO)] <- 0
+
+getwd()
+fout = "Compound1_BIO_2178782_3x_VS_Risdiplam_in_DMSO.png"
+png(fout, height = 1200, width = 1200)            #png(fout,height = 500, width = length(y)*50)
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2178782_3x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_3x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2178782_3x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_3x_vs_GM_DMSO ) )  +
+    geom_point(size=5) + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+         y ="Risdiplam 3x dPSI vs DMSO") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic", hjust = 0.5),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold")
+    )
+dev.off()
+
+
+# Compound2       2186827
+dPSI_working = BIO_2186827_risdiplam_columns =  Compounds_3x_vs_GM_DMSO[ , grep( "2186827_.x_vs_|1949634_.x_vs_"    , colnames(Compounds_3x_vs_GM_DMSO)  ) ] # head(BIO_2186827_risdiplam_columns)
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+head(dPSI_working, 2)
+dPSI_working[1:2,]
+
+dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2186827_3x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2186827_3x_vs_GM_DMSO)] <- 0
+
+getwd()
+fout = "Compound2_BIO_2186827_3x_VS_Risdiplam_in_DMSO.png"
+png(fout, height = 1200, width = 1200)            #png(fout,height = 500, width = length(y)*50)
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2186827_3x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_3x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2186827_3x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_3x_vs_GM_DMSO ) )  +
+    geom_point(size=5) + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+         y ="Risdiplam 3x dPSI vs DMSO") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic", hjust = 0.5),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold")
+    )
+dev.off()
+
+# Compound3        2196772
+dPSI_working = BIO_2196772_risdiplam_columns =  Compounds_3x_vs_GM_DMSO[ , grep( "2196772_.x_vs_|1949634_.x_vs_"    , colnames(Compounds_3x_vs_GM_DMSO)  ) ] # head(BIO_2196772_risdiplam_columns)
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+head(dPSI_working, 2)
+dPSI_working[1:2,]
+
+dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2196772_3x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2196772_3x_vs_GM_DMSO)] <- 0
+
+getwd()
+fout = "Compound3_BIO_2196772_3x_VS_Risdiplam_in_DMSO.png"
+png(fout, height = 1200, width = 1200)            #png(fout,height = 500, width = length(y)*50)
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2196772_3x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_3x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2196772_3x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_3x_vs_GM_DMSO ) )  +
+    geom_point(size=5) + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+         y ="Risdiplam 3x dPSI vs DMSO") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic", hjust = 0.5),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold")
+    )
+dev.off()
+
+# Compound4 2196895
+dPSI_working = BIO_2196895_risdiplam_columns =  Compounds_3x_vs_GM_DMSO[ , grep( "2196895_.x_vs_|1949634_.x_vs_"    , colnames(Compounds_3x_vs_GM_DMSO)  ) ] 
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+head(dPSI_working, 2)
+dPSI_working[1:2,]
+
+dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2196895_3x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2196895_3x_vs_GM_DMSO)] <- 0
+
+dPSI_working
+
+# TPTEP2                                 1.199514e-02                          0.7925311                              leafcutter                            7.200000e-03                          0.4197000                                majiq_v2 ?????
+
+###### change x -limit
+getwd()
+fout = "Compound4_BIO_2196895_3x_VS_Risdiplam_in_DMSO_full.png"
+png(fout, height = 1200, width = 1200)            #png(fout,height = 500, width = length(y)*50)
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2196895_3x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_3x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2196895_3x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_3x_vs_GM_DMSO ) )  +
+    geom_point(size=5) + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+         y ="Risdiplam 3x dPSI vs DMSO") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic", hjust = 0.5),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold") 
+    ) + scale_x_continuous(limits = c(0, 0.8))     #+ scale_y_continuous(limits = c(0, 1))
+dev.off()
+
+# Compound5 2197306
+dPSI_working = BIO_2197306_risdiplam_columns =  Compounds_3x_vs_GM_DMSO[ , grep( "2197306_.x_vs_|1949634_.x_vs_"    , colnames(Compounds_3x_vs_GM_DMSO)  ) ] # head(BIO_2197306_risdiplam_columns)
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+head(dPSI_working, 2)
+dPSI_working[1:2,]
+
+dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2197306_3x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2197306_3x_vs_GM_DMSO)] <- 0
+
+getwd()
+fout = "Compound5_BIO_2197306_3x_VS_Risdiplam_in_DMSO.png"
+png(fout, height = 1200, width = 1200)            #png(fout,height = 500, width = length(y)*50)
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2197306_3x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_3x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2197306_3x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_3x_vs_GM_DMSO ) )  +
+    geom_point(size=5) + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+         y ="Risdiplam 3x dPSI vs DMSO") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic", hjust = 0.5),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold")
+    )
+dev.off()
+
+# Compound6 2199562
+dPSI_working = BIO_2199562_risdiplam_columns =  Compounds_3x_vs_GM_DMSO[ , grep( "2199562_.x_vs_|1949634_.x_vs_"    , colnames(Compounds_3x_vs_GM_DMSO)  ) ] # head(BIO_2199562_risdiplam_columns)
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+head(dPSI_working, 2)
+dPSI_working[1:2,]
+
+dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2199562_3x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2199562_3x_vs_GM_DMSO)] <- 0
+
+getwd()
+fout = "Compound6_BIO_2199562_3x_VS_Risdiplam_in_DMSO.png"
+png(fout, height = 1200, width = 1200)            #png(fout,height = 500, width = length(y)*50)
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2199562_3x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_3x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2199562_3x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_3x_vs_GM_DMSO ) )  +
+    geom_point(size=5) + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+         y ="Risdiplam 3x dPSI vs DMSO") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic", hjust = 0.5),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold")
+    )
+dev.off()
+
+# Compound7 2201042
+dPSI_working = BIO_2201042_risdiplam_columns =  Compounds_3x_vs_GM_DMSO[ , grep( "2201042_.x_vs_|1949634_.x_vs_"    , colnames(Compounds_3x_vs_GM_DMSO)  ) ] # head(BIO_2201042_risdiplam_columns)
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+head(dPSI_working, 2)
+dPSI_working[1:2,]
+
+dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2201042_3x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2201042_3x_vs_GM_DMSO)] <- 0
+
+getwd()
+fout = "Compound7_BIO_2201042_3x_VS_Risdiplam_in_DMSO.png"
+png(fout, height = 1200, width = 1200)            #png(fout,height = 500, width = length(y)*50)
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2201042_3x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_3x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2201042_3x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_3x_vs_GM_DMSO ) )  +
+    geom_point(size=5) + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+         y ="Risdiplam 3x dPSI vs DMSO") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic", hjust = 0.5),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold")
+    )
+dev.off()
+
+# Compound8    2204984
+dPSI_working = BIO_2204984_risdiplam_columns =  Compounds_3x_vs_GM_DMSO[ , grep( "2204984_.x_vs_|1949634_.x_vs_"    , colnames(Compounds_3x_vs_GM_DMSO)  ) ] # head(BIO_2204984_risdiplam_columns)
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+head(dPSI_working, 2)
+dPSI_working[1:2,]
+
+dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2204984_3x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2204984_3x_vs_GM_DMSO)] <- 0
+
+getwd()
+fout = "Compound8_BIO_2204984_3x_VS_Risdiplam_in_DMSO.png"
+png(fout, height = 1200, width = 1200)            #png(fout,height = 500, width = length(y)*50)
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2204984_3x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_3x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2204984_3x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_3x_vs_GM_DMSO ) )  +
+    geom_point(size=5) + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+         y ="Risdiplam 3x dPSI vs DMSO") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic", hjust = 0.5),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold")
+    )
+dev.off()
+
+# Compound9  2206678
+dPSI_working = BIO_2206678_risdiplam_columns =  Compounds_3x_vs_GM_DMSO[ , grep( "2206678_.x_vs_|1949634_.x_vs_"    , colnames(Compounds_3x_vs_GM_DMSO)  ) ] # head(BIO_2206678_risdiplam_columns)
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+head(dPSI_working, 2)
+dPSI_working[1:2,]
+
+dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2206678_3x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2206678_3x_vs_GM_DMSO)] <- 0
+
+getwd()
+fout = "Compound9_BIO_2206678_3x_VS_Risdiplam_in_DMSO.png"
+png(fout, height = 1200, width = 1200)            #png(fout,height = 500, width = length(y)*50)
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2206678_3x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_3x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2206678_3x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_3x_vs_GM_DMSO ) )  +
+    geom_point(size=5) + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+         y ="Risdiplam 3x dPSI vs DMSO") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic", hjust = 0.5),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold")
+    )
+dev.off()
+
+# Compound10 2207180
+dPSI_working = BIO_2207180_risdiplam_columns =  Compounds_3x_vs_GM_DMSO[ , grep( "2207180_.x_vs_|1949634_.x_vs_"    , colnames(Compounds_3x_vs_GM_DMSO)  ) ] # head(BIO_2207180_risdiplam_columns)
+dPSI_working = dPSI_working[ (rowSums(is.na(dPSI_working) ) != ncol(dPSI_working)), ] #U1_WT_EtOH_vs_DMSO_EtOH_dPSI # m[rowSums(is.na(m)) != ncol(m), ] # https://stackoverflow.com/questions/6471689/remove-rows-in-r-matrix-where-all-data-is-na
+
+head(dPSI_working, 2)
+dPSI_working[1:2,]
+
+dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_1949634_3x_vs_GM_DMSO)] <- 0
+dPSI_working$dPSI_GM_BIO_2207180_3x_vs_GM_DMSO[is.na(dPSI_working$dPSI_GM_BIO_2207180_3x_vs_GM_DMSO)] <- 0
+
+getwd()
+fout = "Compound10_BIO_2207180_3x_VS_Risdiplam_in_DMSO.png"
+png(fout, height = 1200, width = 1200)            #png(fout,height = 500, width = length(y)*50)
+ggplot(dPSI_working, aes( x = dPSI_GM_BIO_2207180_3x_vs_GM_DMSO, y= dPSI_GM_BIO_1949634_3x_vs_GM_DMSO,  shape = Algorithm_GM_BIO_2207180_3x_vs_GM_DMSO, color = Algorithm_GM_BIO_1949634_3x_vs_GM_DMSO ) )  +
+    geom_point(size=5) + 
+    geom_text_repel(label=rownames(dPSI_working)) + 
+    labs(title="dPSI : internal compounds VS Risdiplam",
+         y ="Risdiplam 3x dPSI vs DMSO") + 
+    theme(
+        plot.title = element_text(color="red", size=14, face="bold.italic", hjust = 0.5),
+        axis.title.x = element_text(color="blue", size=14, face="bold"),
+        axis.title.y = element_text(color="#993333", size=14, face="bold")
+    )
+dev.off()
+
+
+##############################
+#####  plots : separate file as well #################
+##############################
+## total number of DSG ###
+
+# 1.1) GM 3x3 ===> allsamples 
+# y = colSums(dPSI_bi)
+# names(y) = gsub( "_3x" , "_03x", names(y) )  # y %>% select(sub('_ln$', '', filter_vector))
+# y = y[order(names(y), decreasing=T)]
+# fout=paste0("3vs3_abs_dPSI_binary_numDSG_vertica.png")
+# colorr=c( rep(rgb(0.7,0.7,0.7),4), rep(rgb(0.3,0.3,0.3),4) )    #"violet" , "grey"  ) # blue, navy, grey "indianred" , "violet"   "cyan" , "violet"
+
+
+# # 1.2) samples vs DMSO
+# y = colSums(dPSI_bi)
+# names(y) = gsub( "_3x" , "_03x", names(y) )  # y %>% select(sub('_ln$', '', filter_vector))
+# y = y[order(names(y), decreasing=T)]
+# y = y[ grepl( "vs_.._DMSO" , names(y) ) ] # y %>% select(sub('_ln$', '', filter_vector)) # y = y[ grepl( "vs_SH_DMSO" , names(y) ) ] # y %>% select(sub('_ln$', '', filter_vector))
+# fout="3vs3_abs_dPSI_binary_numDSG_vertica_DMSO.png" #paste0("binary_numDSG_",param,"vertical_DMSO.png")
+# colorr=c( "cyan" , "grey"  ) # blue, navy, grey "indianred" , "violet"   "cyan" , "violet"  colorr=c( rep(rgb(0.7,0.7,0.7),2),rep(rgb(0.3,0.3,0.3),2)   )
+
+# # 1.3) samples vs Risdiplam(e.g 1949634)
+# y = colSums(dPSI_bi)
+# names(y) = gsub( "_3x" , "_03x", names(y) )  # y %>% select(sub('_ln$', '', filter_vector))
+# y = y[order(names(y), decreasing=T)]
+# y = y[ grepl( "vs_.._BIO_1949634" , names(y) ) ] # y %>% select(sub('_ln$', '', filter_vector))
+# fout="3vs3_abs_dPSI_binary_numDSG_vertica_Risdiplam.png"  #paste0("binary_numDSG_",param,"vertical_Risdiplam.png")
+# colorr=c( "violet" , "grey"  ) # blue, navy, grey "indianred" , "violet"   "cyan" , "violet"
+
+
+## 2.1) SH 3x3 ===> all samples
+# y = colSums(dPSI_bi)
+# names(y) = gsub( "_3x" , "_03x", names(y) )  # y %>% select(sub('_ln$', '', filter_vector))
+# y = y[order(names(y), decreasing=T)]
+# fout=paste0("3vs3_abs_dPSI_binary_numDSG_vertica.png")
+# colorr=c( rep(rgb(0.7,0.7,0.7),4), rep(rgb(0.3,0.3,0.3),4) )    #"violet" , "grey"  ) # blue, navy, grey "indianred" , "violet"   "cyan" , "violet"
+# 
+## 2.2) samples vs DMSO
+# y = colSums(dPSI_bi)
+# names(y) = gsub( "_3x" , "_03x", names(y) )  # y %>% select(sub('_ln$', '', filter_vector))
+# y = y[order(names(y), decreasing=T)]
+# y = y[ grepl( "vs_.._DMSO" , names(y) ) ] # y %>% select(sub('_ln$', '', filter_vector)) # y = y[ grepl( "vs_SH_DMSO" , names(y) ) ] # y %>% select(sub('_ln$', '', filter_vector))
+# fout="3vs3_abs_dPSI_binary_numDSG_vertica_DMSO.png" #paste0("binary_numDSG_",param,"vertical_DMSO.png")
+# colorr=c( "cyan" , "grey"  ) # blue, navy, grey "indianred" , "violet"   "cyan" , "violet"  colorr=c( rep(rgb(0.7,0.7,0.7),2),rep(rgb(0.3,0.3,0.3),2)   )
+# 
+# # # 2.3) samples vs Risdiplam(e.g 1949634)
+# y = colSums(dPSI_bi)
+# names(y) = gsub( "_3x" , "_03x", names(y) )  # y %>% select(sub('_ln$', '', filter_vector))
+# y = y[order(names(y), decreasing=T)]
+# y = y[ grepl( "vs_.._BIO_1949634" , names(y) ) ] # y %>% select(sub('_ln$', '', filter_vector))
+# fout="3vs3_abs_dPSI_binary_numDSG_vertica_Risdiplam.png"  #paste0("binary_numDSG_",param,"vertical_Risdiplam.png")
+# colorr=c( "violet" , "grey"  ) # blue, navy, grey "indianred" , "violet"   "cyan" , "violet"
+
+# 3.1) GM 4vs4 ===> allsamples 
+# y = colSums(dPSI_bi)
+# names(y) = gsub( "_3x" , "_03x", names(y) )  # y %>% select(sub('_ln$', '', filter_vector))
+# y = y[order(names(y), decreasing=T)]
+# fout=paste0("4vs4_abs_dPSI_binary_numDSG_vertica.png")
+# colorr=c( rep(rgb(0.7,0.7,0.7),4), rep(rgb(0.3,0.3,0.3),4) )    #"violet" , "grey"  ) # blue, navy, grey "indianred" , "violet"   "cyan" , "violet"
+# 
+# # # 3.2) samples vs DMSO
+# y = colSums(dPSI_bi)
+# names(y) = gsub( "_3x" , "_03x", names(y) )  # y %>% select(sub('_ln$', '', filter_vector))
+# y = y[order(names(y), decreasing=T)]
+# y = y[ grepl( "vs_.._DMSO" , names(y) ) ] # y %>% select(sub('_ln$', '', filter_vector)) # y = y[ grepl( "vs_SH_DMSO" , names(y) ) ] # y %>% select(sub('_ln$', '', filter_vector))
+# fout="4vs4_abs_dPSI_binary_numDSG_vertica_DMSO.png" #paste0("binary_numDSG_",param,"vertical_DMSO.png")
+# colorr=c( "cyan" , "grey"  ) # blue, navy, grey "indianred" , "violet"   "cyan" , "violet"  colorr=c( rep(rgb(0.7,0.7,0.7),2),rep(rgb(0.3,0.3,0.3),2)   )
+# 
+# # # 3.3) samples vs Risdiplam(e.g 1949634)
+# y = colSums(dPSI_bi)
+# names(y) = gsub( "_3x" , "_03x", names(y) )  # y %>% select(sub('_ln$', '', filter_vector))
+# y = y[order(names(y), decreasing=T)]
+# y = y[ grepl( "vs_.._BIO_1949634" , names(y) ) ] # y %>% select(sub('_ln$', '', filter_vector))
+# fout="4vs4_abs_dPSI_binary_numDSG_vertica_Risdiplam.png"  #paste0("binary_numDSG_",param,"vertical_Risdiplam.png")
+# colorr=c( "violet" , "grey"  ) # blue, navy, grey "indianred" , "violet"   "cyan" , "violet"
+
+
+## 4.1) SH 4vs4 ===> all samples
+y = colSums(dPSI_bi)
+names(y) = gsub( "_3x" , "_03x", names(y) )  # y %>% select(sub('_ln$', '', filter_vector))
+y = y[order(names(y), decreasing=T)]
+fout=paste0("4vs4_abs_dPSI_binary_numDSG_vertica.png")
+colorr=c( rep(rgb(0.7,0.7,0.7),4), rep(rgb(0.3,0.3,0.3),4) )    #"violet" , "grey"  ) # blue, navy, grey "indianred" , "violet"   "cyan" , "violet"
+
+## 4.2) samples vs DMSO
+y = colSums(dPSI_bi)
+names(y) = gsub( "_3x" , "_03x", names(y) )  # y %>% select(sub('_ln$', '', filter_vector))
+y = y[order(names(y), decreasing=T)]
+y = y[ grepl( "vs_.._DMSO" , names(y) ) ] # y %>% select(sub('_ln$', '', filter_vector)) # y = y[ grepl( "vs_SH_DMSO" , names(y) ) ] # y %>% select(sub('_ln$', '', filter_vector))
+fout="4vs4_abs_dPSI_binary_numDSG_vertica_DMSO.png" #paste0("binary_numDSG_",param,"vertical_DMSO.png")
+colorr=c( "cyan" , "grey"  ) # blue, navy, grey "indianred" , "violet"   "cyan" , "violet"  colorr=c( rep(rgb(0.7,0.7,0.7),2),rep(rgb(0.3,0.3,0.3),2)   )
+
+## 4.3) samples vs Risdiplam(e.g 1949634)
+y = colSums(dPSI_bi)
+names(y) = gsub( "_3x" , "_03x", names(y) )  # y %>% select(sub('_ln$', '', filter_vector))
+y = y[order(names(y), decreasing=T)]
+y = y[ grepl( "vs_.._BIO_1949634" , names(y) ) ] # y %>% select(sub('_ln$', '', filter_vector))
+fout="4vs4_abs_dPSI_binary_numDSG_vertica_Risdiplam.png"  #paste0("binary_numDSG_",param,"vertical_Risdiplam.png")
+colorr=c( "violet" , "grey"  ) # blue, navy, grey "indianred" , "violet"   "cyan" , "violet"
+
+
+y; getwd()
+#### plotting
+png(fout,width=800, height=length(y)*35) # png(fout,width=800, height=length(y)*25)
+source(pformat)
+par(mar=c(10,28,1,1))
+bp=barplot(y,  xlim = c(0, max(y)*1.2 ), border=NA,  names.arg=gsub("dPSI_","", names(y) ), # "dPSI_"
+           las=2,  cex.axis=0.8,  cex.names=1.0, #cex.axis	 #           expansion factor for numeric axis labels.            las=2,  cex.axis=1.2,  cex.names=1.5 font size
+           horiz=T, col=colorr,
+           sub = "number(DSG)", font.sub = 4,  cex.sub = 2.0)  #http://howtoinr.weebly.com/customize-labels1.html col.sub = "Red",
+text(y, bp, labels = y, pos=4, cex=1.2, offset = 0.3) # lable the differenrtial gene count on the top of BAR
+dev.off()
+
