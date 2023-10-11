@@ -1,0 +1,175 @@
+#
+#
+import argparse
+import os
+import shutil
+import glob
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-indir', dest="indir", help ='working directory')
+parser.add_argument('-ref', dest='ref', help="reference .gtf")
+parser.add_argument('-comparisonRef_name', dest = "comparisonRef_name", help = "reference name in comparisons")
+args = parser.parse_args()
+
+main_folder = args.indir
+reference = args.ref
+
+for i, file in enumerate(os.listdir( main_folder + "/data/stringtie")):
+    file_prefix = file.split('/')[-1].replace('.combined.gtf', '')
+    os.mkdir(main_folder + '/' + file_prefix)
+    os.mkdir(main_folder + '/' +file_prefix + '/harm' )
+    os.mkdir(main_folder + '/' + file_prefix + '/harm/out')
+    os.mkdir(main_folder + '/' + file_prefix + '/harm_prep')
+    os.mkdir(main_folder + '/' + file_prefix + '/junction_prep')
+    os.mkdir(main_folder + '/' + file_prefix + '/out')
+    os.mkdir(main_folder + '/' + file_prefix + '/out/all_gene')
+    
+    os.chdir(main_folder + '/' + file_prefix)
+    comparisonRef_name = args.comparisonRef_name
+    rmats_input = main_folder + '/data/rmats/' + file_prefix  + '_*.txt' 
+    leafcutter_input= main_folder + '/data/leafcutter/' + file_prefix + '*_cluster_significance.txt'
+    majiq_input = main_folder + '/data/majiq/' + file_prefix + '*voila.tsv'
+    rmats_output= main_folder  + '/' + file_prefix + '/junction_prep/rmats_junction_prep.csv' 
+    leafcutter_output= main_folder  + '/' + file_prefix + '/junction_prep/leafcutter_junction_prep.csv' 
+    majiq_output= main_folder  + '/' + file_prefix + '/junction_prep/majiq_junction_prep.csv'
+    
+    annotation= main_folder + "/data/stringtie/" + file
+    junction_input = main_folder  + '/' + file_prefix + '/junction_prep/{method}_junction_prep.csv' 
+    harm_output= main_folder  + '/' + file_prefix +  "/harm"
+    harm_intron_output= main_folder + '/' + file_prefix +  "/harm_prep/intron_list.csv"
+    harm_exonlabel_output= main_folder  + '/' + file_prefix +  "/harm_prep/exon_label.csv"
+    harm_sj_output= main_folder  + '/' + file_prefix +  "/harm_prep/sj_annotation.csv"
+    
+    relabel= main_folder  + '/' + file_prefix + "/harm_prep/exon_label.csv"
+    file_indir= main_folder  + '/' +file_prefix + "/harm"
+    file_outdir= main_folder + '/' +file_prefix + "/harm/out"
+    
+
+    final_output= main_folder  + '/' + file_prefix + "/out"
+    final_allgene_output=  main_folder  + '/' + file_prefix + "/out/all_gene"
+    
+    file_content= ['#!/bin/bash\n', 
+                   '#SBATCH --job-name=harm_run_1\n',
+                   '#SBATCH --nodes=1\n', 
+                   '#SBATCH --cpus-per-task=12\n',
+                   '#SBATCH --partition=cpu\n',
+                   '#SBATCH --time=24:00:00\n',
+                   '#SBATCH --mem=192G\n',
+                   '#SBATCH -o harm_run_1.o.log\n',
+                   '#SBATCH -e harm_run_1.e.log\n',
+                   'source /home/ychen12/tools/miniconda3/etc/profile.d/conda.sh\n',
+                   'conda activate splicing\n',
+                   'rmats_input="{}"\n',
+                   'leafcutter_input="{}"\n',
+                   'majiq_input="{}"\n',
+                   'rmats_output="{}"\n',
+                   'leafcutter_output="{}"\n',
+                   'majiq_output="{}"\n',
+                   'Rscript /home/ychen12/splicing_test/splicing_harmonization/DIRS/rmats_junction_prep_V3.R -i "$rmats_input" -o "$rmats_output" -n "$comparisonRef_name"\n',
+                   'Rscript /home/ychen12/splicing_test/splicing_harmonization/DIRS/leafcutter_junction_prep_V2.R -i "$leafcutter_input" -o "$leafcutter_output"\n',
+                   'Rscript /home/ychen12/splicing_test/splicing_harmonization/DIRS/majiq_junction_prep.R -i "$majiq_input" -o "$majiq_output"\n',
+                   'annotation="{}"\n',
+                   'reference="{}"\n',
+                   'junction_input="{}"\n',
+                   'Rscript /home/ychen12/splicing_test/splicing_harmonization/DIRS/annotation_SJ.R -a "$annotation" -r "$reference" -i "$junction_input"\n',
+                   '',
+                  ]
+    file_content= ''.join(file_content).format(rmats_input, leafcutter_input, majiq_input, rmats_output,
+                                                leafcutter_output, majiq_output, annotation, reference, junction_input)
+    
+    
+    with open("run1.sh", 'w') as file:
+        file.write(file_content)
+        
+        
+    file_content= ['#!/bin/bash\n', 
+                   '#SBATCH --job-name=harm_run_2\n',
+                   '#SBATCH --nodes=1\n', 
+                   '#SBATCH --ntasks-per-node=24\n',
+                   '#SBATCH --partition=cpu\n',
+                   '#SBATCH --time=24:00:00\n',
+                   '#SBATCH -o harm_run_2.o.log\n',
+                   '#SBATCH -e harm_run_2.e.log\n',
+                   'source /home/ychen12/tools/miniconda3/etc/profile.d/conda.sh\n',
+                   'conda activate splicing\n',
+                   'harm_output="{}"\n',
+                   'harm_intron_output="{}"\n',
+                   'harm_exonlabel_output="{}"\n',
+                   'harm_sj_output="{}"\n',
+                   'python /home/ychen12/splicing_test/splicing_harmonization/DIRS/rmats_harm_prep.py -exonlabel $harm_exonlabel_output -i $harm_intron_output -sj $harm_sj_output -o $harm_output\n',
+                   'python /home/ychen12/splicing_test/splicing_harmonization/DIRS/leafcutter_harm_prep.py -exonlabel $harm_exonlabel_output -i $harm_intron_output -sj $harm_sj_output -o $harm_output\n',
+                   'python /home/ychen12/splicing_test/splicing_harmonization/DIRS/majiq_harm_prep.py -exonlabel $harm_exonlabel_output -i $harm_intron_output -sj $harm_sj_output -o $harm_output\n',
+                   'relabel="{}"\n',
+                   'file_indir="{}"\n',
+                   'file_outdir="{}"\n',
+                   'module load openmpi\n', 
+                   'mpirun -np $SLURM_NTASKS python /home/ychen12/splicing_test/splicing_harmonization/DIRS/harm_assign_V2.py -exonlabel $harm_exonlabel_output -indir $file_indir -outdir $file_outdir\n',
+                   'module unload openmpi\n',
+                   '',
+                  ]
+    file_content= ''.join(file_content).format(harm_output, harm_intron_output, harm_exonlabel_output, harm_sj_output, 
+                                               relabel, file_indir,file_outdir)
+    with open("run2.sh", 'w') as file:
+        file.write(file_content)
+    
+    
+    file_content = ['#!/bin/bash\n', 
+                   '#SBATCH --job-name=harm_run_3\n',
+                   '#SBATCH --nodes=1\n', 
+                   '#SBATCH --partition=cpu\n',
+                   '#SBATCH --time=4:00:00\n',
+                   '#SBATCH -o harm_run_3.o.log\n',
+                   '#SBATCH -e harm_run_3.e.log\n',
+                   'source /home/ychen12/tools/miniconda3/etc/profile.d/conda.sh\n',
+                   'conda activate splicing\n',
+                    'file_outdir="{}"\n',
+                    'final_output="{}"\n',
+                   'final_allgene_output="{}"\n',
+                   'python /home/ychen12/splicing_test/splicing_harmonization/DIRS/post_process.py -indir $file_outdir -outdir $final_output -allgene $final_allgene_output',
+                   '',
+                  ]
+    file_content= ''.join(file_content).format(file_outdir, final_output, final_allgene_output)
+    with open("run3.sh", 'w') as file:
+        file.write(file_content)
+        
+    os.chdir(main_folder)
+#!/bin/bash
+
+# Change directory to './A'
+WD="/mnt/depts/dept04/compbio/projects/TST12188/GM_splicing_events" # "SH_splicing_events" # WD="/mnt/depts/dept04/compbio/projects/TST12121/splicing_events2"
+reference="/edgehpc/dept/compbio/projects/splice_pipeline_BSSI/GRCh38_noSMN1_ZG/Human.GRCh38.v34.l1_5.ERCC.noSMN1.transcript.gtf" # reference="/edgehpc/dept/compbio/projects/splice_pipeline_BSSI/mry_annot/Human.GRCh38.v34.l1_5.ERCC.transcript.gtf" # 
+ref_in_comparision="DMSO"
+python /home/ychen12/splicing_test/splicing_harmonization/DIRS/create_scripts.py -indir $WD -ref $reference -comparisonRef_name $ref_in_comparision
+cd $WD
+# Create an array of subfolders
+subfolders=(*/)
+num_subfolders=${#subfolders[@]}
+
+# Submit each 'run.sh' script as a separate Slurm job
+for ((i=0; i<num_subfolders; i++)); do
+    current_subfolder=${subfolders[$i]}
+
+    if [ -f "$current_subfolder/run1.sh" ]; then
+        echo "Submitting 'run1.sh' in $current_subfolder as a Slurm job"
+        cd "$current_subfolder"
+        
+        # Submit 'run1.sh' as a Slurm job in the subfolder and get its job ID
+        output1=$(sbatch run1.sh)
+        job_id1=$(echo "$output1" | awk '{print $NF}')
+        
+        # If run2.sh exists, submit it with a dependency on run1.sh's completion
+        if [ -f "run2.sh" ]; then
+            output2=$(sbatch --dependency=afterok:$job_id1 run2.sh)
+            job_id2=$(echo "$output2" | awk '{print $NF}')
+            
+            # If run3.sh exists, submit it with a dependency on run2.sh's completion
+            if [ -f "run3.sh" ]; then
+                sbatch --dependency=afterok:$job_id2 run3.sh
+            fi
+        fi
+        
+        cd ..
+    else
+        echo "No 'run1.sh' found in $current_subfolder"
+    fi
+done
