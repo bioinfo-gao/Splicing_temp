@@ -230,3 +230,51 @@ for ( i in 1:length(genes)) { # for ( i in 14:15) {for ( i in 16:25) { # for ( i
 #   dataframe[
 #     order( dataframe[,1], dataframe[,3] ),
 #   ]  
+
+
+library(leafviz)
+library(stringr)
+
+
+workding_dirs = list.dirs("/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run", recursive=F) # no argument pattern= "TST11872", also list.files
+
+for ( dir in workding_dirs ) {
+   #rm(list=setdiff(ls(), "x")) #https://stackoverflow.com/questions/6190051/how-can-i-remove-all-objects-but-one-from-the-workspace-in-r
+   raw_Rdata_file  = paste0(dir, "/leafcutter/leafviz.Rdata"           )
+   copy_Rdata_file = paste0(dir, "/leafcutter/CopyOfRaw_leafviz.Rdata" )
+   print(raw_Rdata_file)
+   # file.copy(raw_Rdata_file, copy_Rdata_file )
+   load(raw_Rdata_file)
+    dim(counts)
+   head(counts)
+   temp_intron_data =  row.names(counts)
+   row.names(counts) = str_sub(temp_intron_data , 1 , nchar(temp_intron_data)-2 ) #stringr chrX:1390290:1391899:clu_2:-   remove the trailing : and -, troublesome
+   save.image(raw_Rdata_file)
+}
+
+# leafviz( "/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run/TST11872_iPSC-BIO-1755497-12nM/leafcutter/leafviz.Rdata")
+# leafviz( "/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run/TST11872_iPSC-BIO-1755497-40nM/leafcutter/leafviz.Rdata")
+ 
+# leafviz( "/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run/TST11872_iPSC-BIO-1949634-3uM/leafcutter/leafviz.Rdata" )
+# leafviz( "/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run/TST11872_iPSC-BIO-1949634-10uM/leafcutter/leafviz.Rdata" )
+
+# leafviz( "/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run/TST11872_iPSC-BIO-2006152-45nM/leafcutter/leafviz.Rdata" )
+# leafviz( "/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run/TST11872_iPSC-BIO-2006152-150nM/leafcutter/leafviz.Rdata" )
+
+# leafviz( "/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run/TST11872_iPSC-BIO-2059811-261nM/leafcutter/leafviz.Rdata" )
+# leafviz( "/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run/TST11872_iPSC-BIO-2059811-870nM/leafcutter/leafviz.Rdata" )
+
+# leafviz( "/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run/TST11872_iPSC-BIO-2060573-3uM/leafcutter/leafviz.Rdata"  )
+# leafviz( "/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run/TST11872_iPSC-BIO-2060573-10uM/leafcutter/leafviz.Rdata" )
+
+# leafviz( "/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run/TST11872_iPSC-BIO-2060884-1000nM/leafcutter/leafviz.Rdata" )
+# leafviz( "/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run/TST11872_iPSC-BIO-2060884-3700nM/leafcutter/leafviz.Rdata" )
+
+# leafviz( "/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run/TST11872_iPSC-BIO-2070692-1680nM/leafcutter/leafviz.Rdata" )
+# leafviz( "/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run/TST11872_iPSC-BIO-2070692-5600nM/leafcutter/leafviz.Rdata" )
+
+# leafviz( "/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run/TST11872_iPSC-BIO-2135644-300nM/leafcutter/leafviz.Rdata" )
+# leafviz( "/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run/TST11872_iPSC-BIO-2135644-1uM/leafcutter/leafviz.Rdata" )
+
+# leafviz( "/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run/TST11872_iPSC-BIO-2136770-300nM/leafcutter/leafviz.Rdata"  )
+leafviz( "/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run/TST11872_iPSC-BIO-2136770-1000nM/leafcutter/leafviz.Rdata" )
