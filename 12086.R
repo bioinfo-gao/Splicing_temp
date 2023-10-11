@@ -1170,4 +1170,588 @@ library(pheatmap)
 pheatmap(DSG_3v3_6152 ,fontsize=9, fontsize_row=6, cluster_rows = F,         cluster_cols = F) 
 #pheatmap(DSG_3v3_6152 ,fontsize=9, fontsize_row=6) 
 
+# Data For Magnus
+# run.04.DEG_counts_plot_ranking_batch123_edge7-3x-validated2-with_UnigquID.R
+#install.packages("patchwork") # require(devtools) # install_version("rowr", version = "1.1.3", repos = "http://cran.us.r-project.org")
+R.Version()
+rm(list = ls())        #library(gplots)
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+library(grid)
+library(withr);          # in the Packages withr, select the 2.4.2 version  shown as library(withr, lib.loc = "/opt/R/4.0.3/lib/R/library")
+library(rowr)
+library(patchwork)         #https://stackoverflow.com/questions/67858336/how-to-plot-two-grouped-barplots-vertically-with-single-x-axis-in-r
+
+pformat = "/edgehpc/dept/compbio/users/dhuh/software/R/R_modified/pformat_whitebG.r"
+jet     = colorRampPalette(c("blue","green","yellow","orange","darkred")) # make gradient of colors
+Date           = Sys.Date()
+Date           = gsub("-", "_", Date) # to avoid java commandline parse error
+Date
+
+dout       = paste0("/edgehpc/dept/compbio/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/DownStream_Results_batch1_2_3/" ,  Date, "/DEG/")
+dir.create(dout, recursive = T)
+dir.create(paste0(dout, "/Magnus"))
+dir.create(paste0(dout, "/Jessica"))
+setwd(dout); 
+
+getwd() #setwd("/edgehpc/dept/compbio/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/DownStream_Results_batch1_2_3/2023_07_27/DEG/"); 
+
+# ##############################   Experiment 111111----------------------------------------- iPSC Note ======PTC518 compound is BIO-2197294 
+# ##############################   Experiment1  iPSC 3x  ############################## ############################## ##############################  
+din1 = "/edgehpc/dept/compbio/projects/TST11872/dnanexus/20220204181515_zhen.gao/EA_DEG_automatic_files/Omics_DEG/" # fin = "binary_dPSIrm0.3_dPSIlc0.25_padj0.05_EdPSI0.3_PdPSI0.9_M502022-04-14.csv" 
+setwd(din1)
+fin1s = list.files( path = din1 , pattern = "3xvsiPSC-DMSO.tsv$") # list.dirs all sub_dir recursively #fin1s = list.files( path=din1 , pattern = "10xvsiPSC_DMSO.tsv$") # list.dirs all sub_dir recursivelyfin1s
+fin1s = fin1s[! fin1s %in% c("iPSC-1949634-3xvsiPSC-DMSO.tsv", "iPSC-2060884-3xvsiPSC-DMSO.tsv") ] # Remove 2 samples habe more than 1 thousand reduced genes
+fin1s
+str(fin1s)
+
+Names = gsub( "vsiPSC-DMSO.tsv" ,  "Batch1" , fin1s)
+Names
+Names
+str(Names)
+
+############################### (1.1) ==> Prepare The DataSet ###############################
+s <- 1:length(fin1s)     
+
+datalist <- setNames(
+  lapply(fin1s, function(i){
+    read.table(i, header=TRUE) }) ,
+  paste0( "Index", s, "_",  Names[s] ) #    ) , paste0("iPSC_3x", s) =================
+  ) 
+
+str(datalist)
+head(datalist[[1]])
+head(datalist[[3]])
+dim(datalist[[3]])
+
+############################### (1.2) ==> show the Dimension of the DataSet ###############################
+for(i in 1:length(datalist)) {
+  temp = datalist[[i]] 
+  print( names(datalist)[i]  ) # names(my_list)[2]  # https://statisticsglobe.com/extract-names-of-list-elements-in-r
+  #print(dim(temp)) 
+  temp1 = temp[which(temp$padj < 0.05 & temp$log2FoldChange < -0.585 ), ] # 0.585 => 0.5, 0.2 => 0.263 choose Reduction Only here  for reduction only in earlier ploting, HERE I choose 2023-07-01 to keep
+  print(dim(temp1))
+}
+
+############################### (1.3) ==> merge the DataSet to A Single Table Magnus ############################### 
+# i=1
+# i=i+1
+i
+
+for(i in 1:length(datalist)) {
+  tmp = datalist[[i]]
+  tmp = tmp[which(tmp$log2FoldChange< -0.585 & tmp$padj< 0.05 ), c( "UniqueID", "Gene.Name", "log2FoldChange" )]  
+  # tmp 
+  # colnames(tmp)  = c( paste0( "Index", i, "_",  Names[i], "_",  "Gene.Name"),   "log2FoldChange"  )
+  #tmp$Gene.Name = make.names( tmp$Gene.Name  , unique=TRUE)
+  colnames(tmp)  = c( "UniqueID",  "Gene.Name", paste0( "Index", i, "_", Names[i]  ,"_", "log2FoldChange" )  )
+  
+  if (i == 1){
+    temp_count_table = tmp 
+  } else {
+    temp_count_table = rowr::cbind.fill(temp_count_table,  tmp, fill=NA)  
+  }
+  print(head(temp_count_table ))
+  
+  
+}
+
+getwd()
+fout = paste0( dout,"/Magnus" , "/TST11872_reduced_EXpression",".csv")
+write.csv(temp_count_table, file=fout,  row.names=F)
+
+###############################   ========================  Experiment 22222222222222 ############################## ############################## ##############################  
+din2 = "/edgehpc/dept/compbio/projects/TST11955/dnanexus/20220723054602_Zhen.Gao/EA_DEG_automatic_files/Omics_DEG/" # fin = "binary_dPSIrm0.3_dPSIlc0.25_padj0.05_EdPSI0.3_PdPSI0.9_M502022-04-14.csv" 
+setwd(din2)
+fin2s = list.files( "/edgehpc/dept/compbio/projects/TST11955/dnanexus/20220723054602_Zhen.Gao/EA_DEG_automatic_files/Omics_DEG/" , pattern = "3xvsiPSC_DMSO.tsv$") # list.dirs all sub_dir recursively
+fin2s
+str(fin2s)
+
+Names = gsub( "vsiPSC_DMSO.tsv" ,  "Batch2" , fin2s) ########## ====================<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Names = gsub( "vsiPSC"-"DMSO.tsv" ,  "" , fin2s) ########## ====================<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+Names
+Names
+str(Names)
+#i=1
+i
+Names[i]
+############################### (2.1) ==> Prepare The DataSet ###############################
+s <- 1:length(fin2s)                       #  paste0("iPSC_10x", s))
+datalist <- setNames(
+  lapply(fin2s, function(i){
+    read.table(i, header=TRUE) }
+  ) , paste0( "Index", s, "_",  Names[s] ) #    ) , paste0("iPSC_3x", s) =================
+) 
+str(datalist)
+head(datalist[[1]])
+head(datalist[[3]])
+dim(datalist[[3]])
+
+############################### (2.2) ==> show the Dimension of the DataSet ###############################
+for(i in 1:length(datalist)) {
+  temp = datalist[[i]] 
+  print( names(datalist)[i]  ) # names(my_list)[2]  # https://statisticsglobe.com/extract-names-of-list-elements-in-r
+  #print(dim(temp)) 
+  temp1 = temp[which(temp$padj < 0.05 & temp$log2FoldChange < -0.585 ), ] # 0.585 => 0.5, 0.2 => 0.263 choose Reduction Only here  for reduction only in earlier ploting, HERE I choose 2023-07-01 to keep
+  print(dim(temp1))
+}
+
+############################### (2.3) ==> merge the DataSet to A Single Table Magnus ############################### 
+# i=1
+# i=i+1
+i
+
+for(i in 1:length(datalist)) {
+  tmp = datalist[[i]]
+  tmp = tmp[which(tmp$log2FoldChange< -0.585 & tmp$padj< 0.05 ), c( "UniqueID", "Gene.Name", "log2FoldChange" )]  
+  # tmp 
+  # colnames(tmp)  = c( paste0( "Index", i, "_",  Names[i], "_",  "Gene.Name"),   "log2FoldChange"  )
+  #tmp$Gene.Name = make.names( tmp$Gene.Name  , unique=TRUE)
+  colnames(tmp)  = c( "UniqueID",  "Gene.Name", paste0( "Index", i, "_", Names[i]  ,"_", "log2FoldChange" )  )
+  
+  if (i == 1){
+    temp_count_table = tmp 
+  } else {
+    temp_count_table = rowr::cbind.fill(temp_count_table,  tmp, fill=NA)  
+  }
+  print(head(temp_count_table ))
+  
+}  
+
+getwd() #fout = paste0("/edgehpc/dept/compbio/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/DownStream_Results_batch1_2_3/2023_07_27/DEG/TST11872_reduced_EXpression_Jessica",".csv") 
+fout = paste0( dout,"/Magnus" , "/TST11955_reduced_EXpression",".csv")
+write.csv(temp_count_table, file=fout,  row.names=F)
+
+
+###############################   Experiment3 ############################## ############################## ############################## 
+din3 = "/edgehpc/dept/compbio/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/EA_DEG_automatic_files/Omics_DEG/" # fin = "binary_dPSIrm0.3_dPSIlc0.25_padj0.05_EdPSI0.3_PdPSI0.9_M502022-04-14.csv" 
+setwd(din3)
+
+#fin3s = list.files( path = din1 ) # list.dirs all sub_dir recursively
+fin3s = list.files( path = din3 , pattern = "3xvsiPSC-DMSO.tsv$") # list.dirs all sub_dir recursively #fin3s = list.files( path=din1 , pattern = "10xvsiPSC_DMSO.tsv$") # list.dirs all sub_dir recursively
+fin3s
+str(fin3s)
+
+Names = gsub( "vsiPSC-DMSO.tsv" ,  "Batch3" , fin3s)
+Names
+Names
+str(Names)
+# i=1
+#i
+Names[i]
+############################### (3.1) ==> Prepare The DataSet ###############################
+s <- 1:length(fin3s)                       #  paste0("iPSC_10x", s))
+datalist <- setNames(
+  lapply(fin3s, function(i) { ####### 1s 2s 3s
+    read.table(i, header=TRUE) }
+  ) , paste0( "Index", s, "_",  Names[s] ) #    ) , paste0("iPSC_3x", s) =================
+) 
+
+str(datalist)
+head(datalist[[1]])
+head(datalist[[3]])
+dim(datalist[[3]])
+
+############################### (3.2) ==> show the Dimension of the DataSet ###############################
+for(i in 1:length(datalist)) {
+  temp = datalist[[i]] 
+  print( names(datalist)[i]  ) # names(my_list)[2]  # https://statisticsglobe.com/extract-names-of-list-elements-in-r
+  #print(dim(temp)) 
+  temp1 = temp[which(temp$padj < 0.05 & temp$log2FoldChange < -0.585 ), ] # 0.585 => 0.5, 0.2 => 0.263 choose Reduction Only here  for reduction only in earlier ploting, HERE I choose 2023-07-01 to keep
+  print(dim(temp1))
+}
+
+############################### (3.3) ==> merge the DataSet to A Single Table Magnus ############################### 
+i=1
+i=i+1
+i
+
+for(i in 1:length(datalist)) {
+  tmp = datalist[[i]]
+  tmp = tmp[which(tmp$log2FoldChange< -0.585 & tmp$padj< 0.05 ), c( "UniqueID", "Gene.Name", "log2FoldChange" )]  
+  # tmp 
+  # colnames(tmp)  = c( paste0( "Index", i, "_",  Names[i], "_",  "Gene.Name"),   "log2FoldChange"  )
+  #tmp$Gene.Name = make.names( tmp$Gene.Name  , unique=TRUE)
+  colnames(tmp)  = c( "UniqueID",  "Gene.Name", paste0( "Index", i, "_", Names[i]  ,"_", "log2FoldChange" )  )
+  
+  if (i == 1){
+    temp_count_table = tmp 
+  } else {
+    temp_count_table = rowr::cbind.fill(temp_count_table,  tmp, fill=NA)  
+  }
+  print(head(temp_count_table ))
+  
+}
+
+getwd()
+fout = paste0( dout,"/Magnus" , "/TST12086_reduced_EXpression",".csv")
+write.csv(temp_count_table, file=fout,  row.names=F)
+
+# for Jessica
+# run.04.DEG_counts_plot_ranking_batch123_1edge-3x-good-and_merge1.R
+
+#install.packages("patchwork") # require(devtools) # install_version("rowr", version = "1.1.3", repos = "http://cran.us.r-project.org")
+R.Version()
+rm(list = ls())        #library(gplots)
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+library(grid)
+library(withr);          # in the Packages withr, select the 2.4.2 version  shown as library(withr, lib.loc = "/opt/R/4.0.3/lib/R/library")
+library(rowr)
+library(patchwork)         #https://stackoverflow.com/questions/67858336/how-to-plot-two-grouped-barplots-vertically-with-single-x-axis-in-r
+
+pformat = "/edgehpc/dept/compbio/users/dhuh/software/R/R_modified/pformat_whitebG.r"
+jet     = colorRampPalette(c("blue","green","yellow","orange","darkred")) # make gradient of colors
+Date           = Sys.Date()
+Date           = gsub("-", "_", Date) # to avoid java commandline parse error
+Date
+
+dout       = paste0("/edgehpc/dept/compbio/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/DownStream_Results_batch1_2_3/" ,  Date, "/DEG/")
+dir.create(dout, recursive = T)
+dir.create(paste0(dout, "/Magnus"))
+dir.create(paste0(dout, "/Jessica"))
+setwd(dout); 
+
+getwd() #setwd("/edgehpc/dept/compbio/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/DownStream_Results_batch1_2_3/2023_07_27/DEG/"); 
+
+# ##############################   Experiment 111111----------------------------------------- iPSC Note ======PTC518 compound is BIO-2197294 
+# ##############################   Experiment1  iPSC 3x  ############################## ############################## ##############################  
+din1 = "/edgehpc/dept/compbio/projects/TST11872/dnanexus/20220204181515_zhen.gao/EA_DEG_automatic_files/Omics_DEG/" # fin = "binary_dPSIrm0.3_dPSIlc0.25_padj0.05_EdPSI0.3_PdPSI0.9_M502022-04-14.csv" 
+setwd(din1)
+fin1s = list.files( path = din1 , pattern = "3xvsiPSC-DMSO.tsv$") # list.dirs all sub_dir recursively #fin1s = list.files( path=din1 , pattern = "10xvsiPSC_DMSO.tsv$") # list.dirs all sub_dir recursivelyfin1s
+fin1s = fin1s[! fin1s %in% c("iPSC-1949634-3xvsiPSC-DMSO.tsv", "iPSC-2060884-3xvsiPSC-DMSO.tsv") ] # Remove 2 samples habe more than 1 thousand reduced genes
+fin1s
+str(fin1s)
+
+Names = gsub( "vsiPSC-DMSO.tsv" ,  "Batch1" , fin1s)
+Names
+Names
+str(Names)
+
+############################### (1.1) ==> Prepare The DataSet ###############################
+s <- 1:length(fin1s)     
+
+datalist <- setNames(
+  lapply(fin1s, function(i){
+    read.table(i, header=TRUE) }) ,
+  paste0( "Index", s, "_",  Names[s] ) #    ) , paste0("iPSC_3x", s) =================
+  ) 
+
+str(datalist)
+head(datalist[[1]])
+head(datalist[[3]])
+dim(datalist[[3]])
+
+############################### (1.2) ==> show the Dimension of the DataSet ###############################
+for(i in 1:length(datalist)) {
+  temp = datalist[[i]] 
+  print( names(datalist)[i]  ) # names(my_list)[2]  # https://statisticsglobe.com/extract-names-of-list-elements-in-r
+  #print(dim(temp)) 
+  temp1 = temp[which(temp$padj < 0.05 & temp$log2FoldChange < -0.585 ), ] # 0.585 => 0.5, 0.2 => 0.263 choose Reduction Only here  for reduction only in earlier ploting, HERE I choose 2023-07-01 to keep
+  print(dim(temp1))
+}
+
+############################### (1.3) ==> merge the DataSet to A Single Table Magnus ############################### 
+# i=1
+# i=i+1
+i
+
+for(i in 1:length(datalist)) {
+  tmp = datalist[[i]]
+  tmp = tmp[which(tmp$log2FoldChange< -0.585 & tmp$padj< 0.05 ), c( "Gene.Name", "log2FoldChange", "padj" )]  
+  tmp 
+  #row.names(tmp) = make.names( tmp$Gene.Name  , unique=TRUE)
+  tmp$Gene.Name = make.names( tmp$Gene.Name  , unique=TRUE)
+  colnames(tmp)  = c( "Gene.Name", paste0( "Index", i, "_", Names[i]  ,"_", "log2FoldChange" ) ,  paste0( "Index", i, "_",  "padj"  ) )
+
+  if (i == 1){
+    temp_count_table = tmp 
+  } else {
+    temp_count_table = merge(temp_count_table,  tmp, by = "Gene.Name", all = T)  
+  }
+  print( head(temp_count_table ) )
+}
+
+getwd()
+fout = paste0( dout,"/Jessica" , "/TST11872_reduced_EXpression",".csv")
+write.csv(temp_count_table, file=fout,  row.names=F)
+
+###############################   ========================  Experiment 22222222222222 ############################## ############################## ##############################  
+din2 = "/edgehpc/dept/compbio/projects/TST11955/dnanexus/20220723054602_Zhen.Gao/EA_DEG_automatic_files/Omics_DEG/" # fin = "binary_dPSIrm0.3_dPSIlc0.25_padj0.05_EdPSI0.3_PdPSI0.9_M502022-04-14.csv" 
+setwd(din2)
+fin2s = list.files( "/edgehpc/dept/compbio/projects/TST11955/dnanexus/20220723054602_Zhen.Gao/EA_DEG_automatic_files/Omics_DEG/" , pattern = "3xvsiPSC_DMSO.tsv$") # list.dirs all sub_dir recursively
+fin2s
+str(fin2s)
+
+Names = gsub( "vsiPSC_DMSO.tsv" ,  "Batch2" , fin2s) ########## ====================<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Names = gsub( "vsiPSC"-"DMSO.tsv" ,  "" , fin2s) ########## ====================<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+Names
+Names
+str(Names)
+#i=1
+i
+Names[i]
+############################### (2.1) ==> Prepare The DataSet ###############################
+s <- 1:length(fin2s)                       #  paste0("iPSC_10x", s))
+datalist <- setNames(
+  lapply(fin2s, function(i){
+    read.table(i, header=TRUE) }
+  ) , paste0( "Index", s, "_",  Names[s] ) #    ) , paste0("iPSC_3x", s) =================
+) 
+str(datalist)
+head(datalist[[1]])
+head(datalist[[3]])
+dim(datalist[[3]])
+
+############################### (2.2) ==> show the Dimension of the DataSet ###############################
+for(i in 1:length(datalist)) {
+  temp = datalist[[i]] 
+  print( names(datalist)[i]  ) # names(my_list)[2]  # https://statisticsglobe.com/extract-names-of-list-elements-in-r
+  #print(dim(temp)) 
+  temp1 = temp[which(temp$padj < 0.05 & temp$log2FoldChange < -0.585 ), ] # 0.585 => 0.5, 0.2 => 0.263 choose Reduction Only here  for reduction only in earlier ploting, HERE I choose 2023-07-01 to keep
+  print(dim(temp1))
+}
+
+############################### (2.3) ==> merge the DataSet to A Single Table Magnus ############################### 
+# i=1
+# i=i+1
+i
+
+for(i in 1:length(datalist)) {
+  tmp = datalist[[i]]
+  tmp = tmp[which(tmp$log2FoldChange< -0.585 & tmp$padj< 0.05 ), c( "Gene.Name", "log2FoldChange", "padj" )]  
+  tmp 
+  #row.names(tmp) = make.names( tmp$Gene.Name  , unique=TRUE)
+  tmp$Gene.Name = make.names( tmp$Gene.Name  , unique=TRUE)
+  colnames(tmp)  = c( "Gene.Name", paste0( "Index", i, "_", Names[i]  ,"_", "log2FoldChange" ) ,  paste0( "Index", i, "_",  "padj"  ) )
+  
+  if (i == 1){
+    temp_count_table = tmp 
+  } else {
+    temp_count_table = merge(temp_count_table,  tmp, by = "Gene.Name", all = T)  
+  }
+  
+  print(head(temp_count_table ))
+  (temp_count_table )
+}
+
+getwd() #fout = paste0("/edgehpc/dept/compbio/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/DownStream_Results_batch1_2_3/2023_07_27/DEG/TST11872_reduced_EXpression_Jessica",".csv") 
+fout = paste0( dout,"/Jessica" , "/TST11955_reduced_EXpression",".csv")
+write.csv(temp_count_table, file=fout,  row.names=F)
+
+
+###############################   Experiment3 ############################## ############################## ############################## 
+din3 = "/edgehpc/dept/compbio/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/EA_DEG_automatic_files/Omics_DEG/" # fin = "binary_dPSIrm0.3_dPSIlc0.25_padj0.05_EdPSI0.3_PdPSI0.9_M502022-04-14.csv" 
+setwd(din3)
+
+#fin3s = list.files( path = din1 ) # list.dirs all sub_dir recursively
+fin3s = list.files( path = din3 , pattern = "3xvsiPSC-DMSO.tsv$") # list.dirs all sub_dir recursively #fin3s = list.files( path=din1 , pattern = "10xvsiPSC_DMSO.tsv$") # list.dirs all sub_dir recursively
+fin3s
+str(fin3s)
+
+Names = gsub( "vsiPSC-DMSO.tsv" ,  "Batch3" , fin3s)
+Names
+Names
+str(Names)
+# i=1
+i
+Names[i]
+############################### (3.1) ==> Prepare The DataSet ###############################
+s <- 1:length(fin3s)                       #  paste0("iPSC_10x", s))
+datalist <- setNames(
+  lapply(fin3s, function(i) { ####### 1s 2s 3s
+    read.table(i, header=TRUE) }
+  ) , paste0( "Index", s, "_",  Names[s] ) #    ) , paste0("iPSC_3x", s) =================
+) 
+
+str(datalist)
+head(datalist[[1]])
+head(datalist[[3]])
+dim(datalist[[3]])
+
+############################### (3.2) ==> show the Dimension of the DataSet ###############################
+for(i in 1:length(datalist)) {
+  temp = datalist[[i]] 
+  print( names(datalist)[i]  ) # names(my_list)[2]  # https://statisticsglobe.com/extract-names-of-list-elements-in-r
+  #print(dim(temp)) 
+  temp1 = temp[which(temp$padj < 0.05 & temp$log2FoldChange < -0.585 ), ] # 0.585 => 0.5, 0.2 => 0.263 choose Reduction Only here  for reduction only in earlier ploting, HERE I choose 2023-07-01 to keep
+  print(dim(temp1))
+}
+
+############################### (3.3) ==> merge the DataSet to A Single Table Magnus ############################### 
+i=1
+i=i+1
+i
+
+for(i in 1:length(datalist)) {
+  tmp = datalist[[i]]
+  tmp = tmp[which(tmp$log2FoldChange< -0.585 & tmp$padj< 0.05 ), c( "Gene.Name", "log2FoldChange", "padj" )]  
+  tmp 
+  #row.names(tmp) = make.names( tmp$Gene.Name  , unique=TRUE)
+  tmp$Gene.Name = make.names( tmp$Gene.Name  , unique=TRUE)
+  colnames(tmp)  = c( "Gene.Name", paste0( "Index", i, "_", Names[i]  ,"_", "log2FoldChange" ) ,  paste0( "Index", i, "_",  "padj"  ) )
+  
+  if (i == 1){
+    temp_count_table = tmp 
+  } else {
+    temp_count_table = merge(temp_count_table,  tmp, by = "Gene.Name", all = T)  
+  }
+  
+  print(head(temp_count_table ))
+  (temp_count_table )
+  
+}
+
+getwd()
+fout = paste0( dout,"/Jessica" , "/TST12086_reduced_EXpression",".csv")
+write.csv(temp_count_table, file=fout,  row.names=F)
+
+
+############################### (4)  DataSet combined from DataSet 1, 2, 3############################### ############################### (4.1) ==> Prepare The DataSet ###############################
+############################### (4.1) ==> Prepare The DataSet ###############################
+din1 = "/edgehpc/dept/compbio/projects/TST11872/dnanexus/20220204181515_zhen.gao/EA_DEG_automatic_files/Omics_DEG/" # fin = "binary_dPSIrm0.3_dPSIlc0.25_padj0.05_EdPSI0.3_PdPSI0.9_M502022-04-14.csv" 
+#setwd(din1)
+fin1s = list.files( path = din1 , pattern = "3xvsiPSC-DMSO.tsv$") # list.dirs all sub_dir recursively #fin1s = list.files( path=din1 , pattern = "10xvsiPSC_DMSO.tsv$") # list.dirs all sub_dir recursivelyfin1s
+fin1s = fin1s[! fin1s %in% c("iPSC-1949634-3xvsiPSC-DMSO.tsv", "iPSC-2060884-3xvsiPSC-DMSO.tsv") ] # Remove 2 samples habe more than 1 thousand reduced genes
+fin1s
+str(fin1s)
+
+Names_Batch1 = gsub( "vsiPSC-DMSO.tsv" ,  "Batch1" , fin1s)
+Names_Batch1
+Names_Batch1
+
+
+din2 = "/edgehpc/dept/compbio/projects/TST11955/dnanexus/20220723054602_Zhen.Gao/EA_DEG_automatic_files/Omics_DEG/" # fin = "binary_dPSIrm0.3_dPSIlc0.25_padj0.05_EdPSI0.3_PdPSI0.9_M502022-04-14.csv" 
+#setwd(din2)
+fin2s = list.files( "/edgehpc/dept/compbio/projects/TST11955/dnanexus/20220723054602_Zhen.Gao/EA_DEG_automatic_files/Omics_DEG/" , pattern = "3xvsiPSC_DMSO.tsv$") # list.dirs all sub_dir recursively
+fin2s
+str(fin2s)
+
+Names_Batch2 = gsub( "vsiPSC_DMSO.tsv" ,  "Batch2" , fin2s) ########## ====================<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Names = gsub( "vsiPSC"-"DMSO.tsv" ,  "" , fin2s) ########## ====================<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+Names_Batch2
+Names_Batch2
+str(Names_Batch2)
+#i=1
+Names_Batch2[1]
+
+din3 = "/edgehpc/dept/compbio/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/EA_DEG_automatic_files/Omics_DEG/" # fin = "binary_dPSIrm0.3_dPSIlc0.25_padj0.05_EdPSI0.3_PdPSI0.9_M502022-04-14.csv" 
+#setwd(din3)
+#fin3s = list.files( path = din1 ) # list.dirs all sub_dir recursively
+fin3s = list.files( path = din3 , pattern = "3xvsiPSC-DMSO.tsv$") # list.dirs all sub_dir recursively #fin3s = list.files( path=din1 , pattern = "10xvsiPSC_DMSO.tsv$") # list.dirs all sub_dir recursively
+fin3s
+str(fin3s)
+
+Names_Batch3 = gsub( "vsiPSC-DMSO.tsv" ,  "Batch3" , fin3s)
+Names_Batch3
+Names_Batch3
+str(Names_Batch3)
+
+s1 <- 1:length(fin1s)                       #  paste0("iPSC_10x", s))
+s2 <- 1:length(fin2s)                       #  paste0("iPSC_10x", s))
+s3 <- 1:length(fin3s)                       #  paste0("iPSC_10x", s))
+s1 
+s2 
+s3 
+
+datalist_Batch1 <- setNames(
+  lapply( paste0(din1, fin1s) , function(i) { ####### 1s 2s 3s
+    read.table(i, header=TRUE) }
+  ) , paste0( "Index", s1, "_",  Names_Batch1[s1] ) #    ) , paste0("iPSC_3x", s) =================
+) 
+
+datalist_Batch2 <- setNames(
+  lapply(paste0(din2, fin2s), function(i) { ####### 1s 2s 3s
+    read.table(i, header=TRUE) }
+  ) , paste0( "Index", s2, "_",  Names_Batch2[s2] ) #    ) , paste0("iPSC_3x", s) =================
+) 
+
+datalist_Batch3 <- setNames(
+  lapply( paste0(din3,  fin3s) , function(i) { ####### 1s 2s 3s
+    read.table(i, header=TRUE) }
+  ) , paste0( "Index", s3, "_",  Names_Batch3[s3] ) #    ) , paste0("iPSC_3x", s) =================
+) 
+
+
+
+datalist_Batch123  = c(datalist_Batch1, datalist_Batch2, datalist_Batch3) 
+
+str(datalist_Batch1)
+str(datalist_Batch2)
+str(datalist_Batch3)
+str(datalist_Batch123)
+
+head(datalist_Batch1[[1]])
+head(datalist_Batch2[[3]])
+head(datalist_Batch3[[3]])
+dim(datalist_Batch3[[3]])
+
+length(datalist_Batch123)
+
+############################### (4.2) ==> show the Dimension of the DataSet ###############################
+for(i in 1:length(datalist_Batch123)) {
+  temp = datalist_Batch123[[i]] 
+  print( names(datalist_Batch123)[i]  ) # names(my_list)[2]  # https://statisticsglobe.com/extract-names-of-list-elements-in-r
+  #print(dim(temp)) 
+  temp1 = temp[which(temp$padj < 0.05 & temp$log2FoldChange < -0.585 ), ] # 0.585 => 0.5, 0.2 => 0.263 choose Reduction Only here  for reduction only in earlier ploting, HERE I choose 2023-07-01 to keep
+  print(dim(temp1))
+}
+
+############################### (4.3) ==> merge the DataSet to A Single Table Magnus ############################### 
+# i=1
+# i=i+1
+i
+
+for(i in 1:length(datalist_Batch123)) {
+  tmp = datalist_Batch123[[i]]
+  tmp = tmp[which(tmp$log2FoldChange< -0.585 & tmp$padj< 0.05 ), c("UniqueID", "Gene.Name", "log2FoldChange", "padj" )]  
+  tmp 
+  #row.names(tmp) = make.names( tmp$Gene.Name  , unique=TRUE)
+  #tmp$Gene.Name = make.names( tmp$Gene.Name  , unique=TRUE)
+  
+  colnames(tmp)  = c( "UniqueID", "Gene.Name", paste0( names(datalist_Batch123)[i]   ,"_", "log2FoldChange" ) ,   "padj"  ) 
+  
+  if (i == 1){
+    temp_count_table = tmp 
+  } else {
+    temp_count_table = merge(temp_count_table,  tmp, by = "UniqueID", all = T)  #     temp_count_table = merge(temp_count_table,  tmp, by = "Gene.Name", all = T)  
+  }
+  
+  print(head(temp_count_table ))
+  (temp_count_table )
+  
+}
+
+
+
+detected_genes = temp_count_table$UniqueID # detected_genes = temp_count_table$Gene.Name
+
+#i=1
+# i=i+1
+i
+
+#"UniqueID"
+for(i in 1:length(datalist_Batch123)) {
+  tmp_full = datalist_Batch123[[i]]
+  tmp_full = tmp_full[ which(tmp_full$UniqueID %in% detected_genes),  c( "UniqueID", "Gene.Name", "log2FoldChange",   "padj" )  ]  #   tmp_full = tmp_full[ which(tmp_full$Gene.Name %in% detected_genes), ]  
+  
+  tmp_full 
+  #row.names(tmp_full) = make.names( tmp_full$Gene.Name  , unique=TRUE)
+  #tmp_full$Gene.Name = make.names( tmp_full$Gene.Name  , unique=TRUE)
+  
+  colnames(tmp_full)  = c( "UniqueID", "Gene.Name", paste0( names(datalist_Batch123)[i]   ,"_", "log2FoldChange" ) ,   "padj"  ) 
+  
+  if (i == 1){
+    temp_count_table = tmp_full 
+  } else {
+    temp_count_table = merge(temp_count_table,  tmp_full, by = "UniqueID", all = T)  
+  }
+  
+  print(head(temp_count_table ))
+  (temp_count_table )
+  
+}
+
+getwd()
+fout = paste0( dout,"/Jessica" , "/TST11872_11955_12086_reduced_merged_EXpression",".csv")
+write.csv(temp_count_table, file=fout,  row.names=F)
 
