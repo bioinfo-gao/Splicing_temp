@@ -1,0 +1,41 @@
+# main_ZG_GM_no_SMN1.sh
+#!/bin/bash
+
+# Change directory to './A'
+WD="/mnt/depts/dept04/compbio/projects/TST12188/GM_splicing_events" # "SH_splicing_events" # WD="/mnt/depts/dept04/compbio/projects/TST12121/splicing_events2"
+reference="/edgehpc/dept/compbio/projects/splice_pipeline_BSSI/GRCh38_noSMN1_ZG/Human.GRCh38.v34.l1_5.ERCC.noSMN1.transcript.gtf" # reference="/edgehpc/dept/compbio/projects/splice_pipeline_BSSI/mry_annot/Human.GRCh38.v34.l1_5.ERCC.transcript.gtf" # 
+ref_in_comparision="DMSO"
+python /home/ychen12/splicing_test/splicing_harmonization/DIRS/create_scripts.py -indir $WD -ref $reference -comparisonRef_name $ref_in_comparision
+cd $WD
+# Create an array of subfolders
+subfolders=(*/)
+num_subfolders=${#subfolders[@]}
+
+# Submit each 'run.sh' script as a separate Slurm job
+for ((i=0; i<num_subfolders; i++)); do
+    current_subfolder=${subfolders[$i]}
+
+    if [ -f "$current_subfolder/run1.sh" ]; then
+        echo "Submitting 'run1.sh' in $current_subfolder as a Slurm job"
+        cd "$current_subfolder"
+        
+        # Submit 'run1.sh' as a Slurm job in the subfolder and get its job ID
+        output1=$(sbatch run1.sh)
+        job_id1=$(echo "$output1" | awk '{print $NF}')
+        
+        # If run2.sh exists, submit it with a dependency on run1.sh's completion
+        if [ -f "run2.sh" ]; then
+            output2=$(sbatch --dependency=afterok:$job_id1 run2.sh)
+            job_id2=$(echo "$output2" | awk '{print $NF}')
+            
+            # If run3.sh exists, submit it with a dependency on run2.sh's completion
+            if [ -f "run3.sh" ]; then
+                sbatch --dependency=afterok:$job_id2 run3.sh
+            fi
+        fi
+        
+        cd ..
+    else
+        echo "No 'run1.sh' found in $current_subfolder"
+    fi
+done
