@@ -1,3 +1,4 @@
+
 #index
 FILES=/camhpc/ngs/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/bam/point125bam/*1755497-3x-?.Aligned.sortedByCoord.out.bam
 
@@ -278,3 +279,10 @@ for ( dir in workding_dirs ) {
 
 # leafviz( "/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run/TST11872_iPSC-BIO-2136770-300nM/leafcutter/leafviz.Rdata"  )
 leafviz( "/camhpc/home/zgao1/NGS_projects/TST11872/dnanexus/20220204181515_zhen.gao/Result/Analysis_2_2022_02_try_run/TST11872_iPSC-BIO-2136770-1000nM/leafcutter/leafviz.Rdata" )
+
+
+
+
+fastqc_dir="/camhpc/dept/compbio/project/splice_pipeline_BSSI/results/dev/fastqc"
+
+echo "source /etc/profile.d/modules_bash.sh; module purge; module load anaconda; unset PYTHONPATH; source activate /home/mryals/.conda/envs/multiqc;cd $fastqc_dir; multiqc $fastqc_dir" | qsub -N multiqc -q cpu.q -l h_rt=272:00:00 -l h_vmem=256G -pe thread 12
