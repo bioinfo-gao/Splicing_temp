@@ -1,0 +1,47 @@
+Splicing software package MntJulip/Jutils
+Fergal Casey
+Dann Huh;DL-Translational Data Science
+Hi Dann,
+Yep ok so you looked into it more deeply and it isn't harmonizing properly/completely across the tools. I thought that would be the main value.
+Their sashimi plotting may perhaps be useful but we already have ggsashimi
+Best,
+Fergal
+Dann Huh
+Fergal Casey;DL-Translational Data Science
+Hi Fergal,
+
+ 
+
+Thanks for the sending the links.
+
+Baohong has circulated predecessor of this tool Jutils, and I thought we would need a different tool (please see attached if you’re curious).
+
+The current paper is a program for different splice analysis analogous to rMATs, leafcutter, etc. This might be useful, but I’m afraid we’ll have to try out in the future, rather than now, given our priorities and bandwidths.
+
+ 
+
+-regards,
+
+Dann
+
+Fergal Casey
+DL-Translational Data Science
+Here is the application I was referring to – looks like Jutils may be able to convert from Leafcutter, rMats and Majiq to a standard format – not sure how harmonized it really is.
+
+Also provides some visualization methods and their own DSG method (in MntJulip)
+
+https://github.com/splicebox/Jutils        
+
+https://github.com/splicebox/MntJulip/
+
+ 
+
+Paper on their method:
+
+https://genomebiology.biomedcentral.com/articles/10.1186/s13059-022-02767-y
+
+ 
+
+Best,
+
+Fergal
