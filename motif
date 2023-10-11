@@ -1,0 +1,227 @@
+#
+gene_query.csv
+logs
+res.01.bed_files
+res.02.homer
+res.04.frmm_bed_to_sequence
+run.01.make_bed_file_from_rmats_SE_w_threholds.py
+run.01.make_bed_file_matchedbG.py
+run.02.homer.qsub
+run.04.from_bed_to_sequence.bash
+sub.02.collect_top_motifs.bash
+ZG_run.04.from_bed_to_sequence.bash
+
+#
+import glob
+import numpy as np
+
+windowsize=10 #even number, to make it plus-minus windowsize/2
+thr_dPSI=0.1
+thr_FDR=0.05
+thr_maxjc=50
+
+din="../../rmats/*x/"
+finname_ar=glob.glob(din+"SE.MATS.JCEC.txt")
+for finname in finname_ar:
+        foutname=finname.split("/")[-2]+"_rmats_SE.bed"
+        
+	fin=open(finname,"r")
+	fout=open(foutname,"w")
+	line=fin.readline() #header
+	line=fin.readline() #actual numbers
+	uniqueid_cum=[]
+	while line:
+		lin=line.split("\t")
+
+		dPSI=float(lin[22].strip())
+		FDR=float(lin[19])
+		jcount=[ [int(v) for v in lin[12].replace("'","").split(",")], #junction counts
+			 [int(v) for v in lin[13].replace("'","").split(",")],
+			 [int(v) for v in lin[14].replace("'","").split(",")],
+			 [int(v) for v in lin[15].replace("'","").split(",")] ]
+		
+		maxjc=max([np.mean(ar) for ar in jcount]) #maximum junction count
+		
+		if(abs(dPSI) >= thr_dPSI and FDR < thr_FDR and maxjc > thr_maxjc):
+			gn=lin[2].replace("\"","")
+			chr=lin[3]
+			strand=lin[4]
+
+                     # chromosome position near 3' end of exon #
+			if(strand=="+"):
+				exonend=lin[6]  #exonEnd
+			elif(strand=="-"):
+				exonend=lin[5] #"exonStart_0base"
+			else:
+				print("Error: no strand information")
+
+			uniqueid=chr+strand+str(exonend)
+			if (not (uniqueid in uniqueid_cum)):
+				uniqueid_cum.append(uniqueid)
+				pini=str(int(exonend)-windowsize/2)
+				pter=str(int(exonend)+windowsize/2)
+                                # write into bed format #
+				fout.write(chr+"\t"+pini+"\t"+pter+"\t"+gn+"\t"+str(dPSI)+"\t"+strand+"\t"+str(FDR)+"\n")
+
+		line=fin.readline()
+	fin.close()
+	fout.close()
+
+############################
+## read .gtf file         ###
+## randomly select exon  ##
+## add +- 5 bp from the end of the exon, depending on strand ###
+###############################
+
+import pandas as pd
+import numpy as np
+import random as rd
+
+num_bG=100000 #larget DSG in rmats SE in 400nM is 54252
+windowsize=10 #even number, to make it plus-minus windowsize/2
+
+finname="/home/dhuh/SMASM/annotation_noSMN1/fa_gtf_gff/gencode.v28lift37.noSMN1_fixed.transcript.transcript.gtf"
+foutname="nearExon_matchedbG_window_"+str(windowsize)+".bed"
+
+#############################################################################################################
+annot=pd.read_csv(finname,sep='\t',header=None,
+	names=['chr', 'source', 'type', 'start', 'end', 'score', 'strand', 'phase', 'attributes'])
+
+rn_exon=np.where(annot.loc[:,'type']=="exon")[0] #select rows for exon only 
+p_rd=rd.sample(xrange(0,len(rn_exon)), num_bG)
+rn_rd=rn_exon[p_rd] #rowname, random exons
+
+fout=open(foutname,"w")
+for i in rn_rd:
+	temp=annot.iloc[i,:]
+	if(temp['strand']=="+"):
+		ini=temp['end']-windowsize/2
+		ter=temp['end']+windowsize/2
+	elif(temp['strand']=="-"):
+		ini=temp['start']-windowsize/2
+                ter=temp['start']+windowsize/2
+
+	# write into bed format #	
+	fout.write(temp['chr']+"\t"+str(ini)+"\t"+str(ter)+"\t"+temp['type']+"\t.\t"+temp['strand']+"\t.\n")
+
+fout.close()
+
+#!/bin/bash
+#$ -N out
+#$ -l h_rt=12:00:00
+#$ -b y
+#$ -j y
+#$ -V
+#$ -cwd
+#$ -pe openmpi-roundrobin 8
+#$ -t 1-12
+
+genome=hg19
+
+din=./res.01.bed_files
+fin_ar=($(ls $din/*rmats*))
+background=$din/nearExon_matchedbG_window_10.bed
+
+
+i=$(($SGE_TASK_ID-1))
+fin=${fin_ar[$i]} #fin=./res.01.bed_files/rmats_SE_abthr_HNDS006_01C2-RG7961_400nM.bed
+base=${fin##*/}
+mkdir -p res.02.homer;  outdir=./res.02.homer/homer_${base//.bed/}
+
+
+ ### randomly select background ###
+#Rscript sub.01_02.make_region_matched_bG.R $foutin3 $annobed $foutin4
+
+ ### homer without background matched.
+module load homer/4.8
+findMotifsGenome.pl $fin $genome $outdir -rna -preparsedDir ${outdir}/preparsed -S 10 -len 7,8,9,10 -bg $background
+
+ ### collect top motifs ##
+bash sub.02.collect_top_motifs.bash $outdir
+
+module load bedtools/2.28.0
+
+fastain=/POC/NGS/genomes/hg19as/hg19as.fa
+fin_ar=$(ls ./res.01.bed_files/*rmats*)
+dout=res.04.frmm_bed_to_sequence; mkdir -p $dout
+
+###########################################################################
+for fin in $fin_ar; do
+	#fin=./res.01.bed_files/rmats_SE_abthr_HNDS006_01C2-RG7961_400nM.bed
+	base=${fin##*/}
+	fout=${base//.bed/.txt}
+## .bed to fasta sequence ##
+	bedtools getfasta -s -name -fi $fastain -bed $fin > temp.txt #### convert bed to sequence, revcomp is taken care of by "-s"
+	bedtools getfasta -s -fi $fastain -bed $fin > temp2.txt #### convert bed to sequence, not names but choordinate
+	
+## formatting ##
+	awk 'BEGIN {OFS=" "}{
+	getline line < "temp.txt"
+	print $0,line
+	} ' temp2.txt > temp3.txt
+
+	sed "N;s/\n/\t/" temp3.txt > $dout/$fout
+done
+rm temp.txt temp2.txt temp3.txt
+
+# sub.02
+dirpre=${1}
+motif_out=1.${dirpre##*/}_motif_top5_collected.txt
+
+cat ${dirpre}/homerResults/motif1.motif ${dirpre}/homerResults/motif2.motif ${dirpre}/homerResults/motif3.motif ${dirpre}/homerResults/motif4.motif ${dirpre}/homerResults/motif5.motif > ${dirpre}/${motif_out}
+
+echo $dirpre/$motif_out
+
+# zhen : ZG_run.04.from_bed_to_sequence.sh
+# module load anaconda3
+# 
+# module load bedtools
+# 
+# Lmod has detected the following error:  The following module(s) are unknown: "bedtools"
+# 
+# Please check the spelling or version number. Also try "module spider ..."
+# It is also possible your cache file is out-of-date; it may help to try:
+#   $ module --ignore_cache load "bedtools"
+# 
+# Also make sure that all modulefiles written in TCL start with the string #%Module
+# 
+# 
+# $  module spider bedtools
+# 
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#   BEDTools: BEDTools/2.30.0-GCC-11.2.0
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#     Description:
+# 
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#   bedtools2: bedtools2/2.29.2-gcc-11.1.0
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+module load bedtools2/2.29.2-gcc-11.1.0 # module load bedtools/2.28.0
+
+fastain=/edgehpc/dept/compbio/genomes/hg38/hg38.fa # fastain=/POC/NGS/genomes/hg19as/hg19as.fa
+
+# /edgehpc/dept/compbio/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/Dann_motif/motif_rmats_SE_nearExon_dPSI0.1_pm5bp_matchedbG
+fin_ar=$(ls ./res.01.bed_files/*rmats*)
+
+dout=res.04.frmm_bed_to_sequence; mkdir -p $dout
+
+###########################################################################
+for fin in $fin_ar; do
+	#fin=./res.01.bed_files/rmats_SE_abthr_HNDS006_01C2-RG7961_400nM.bed
+	base=${fin##*/}
+	fout=${base//.bed/.txt}
+## .bed to fasta sequence ##
+	bedtools getfasta -s -name -fi $fastain -bed $fin > temp.txt #### convert bed to sequence, revcomp is taken care of by "-s"
+	bedtools getfasta -s -fi $fastain -bed $fin > temp2.txt #### convert bed to sequence, not names but choordinate
+	
+## formatting ##
+	awk 'BEGIN {OFS=" "}{
+	getline line < "temp.txt"
+	print $0,line
+	} ' temp2.txt > temp3.txt
+
+	sed "N;s/\n/\t/" temp3.txt > $dout/$fout
+done
+rm temp.txt temp2.txt temp3.txt
+
