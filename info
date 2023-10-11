@@ -1019,3 +1019,48 @@ Powered by the Research Data Sciences Group [fergal.casey@biogen.com;zhengyu.ouy
 ########################### () ########################### 
 ########################### () ########################### 
 ########################### () ########################### 
+Dear Soumya:
+
+(ITEM 1)========================QuickOmics Link =============================
+TST11726:  This project was Not analyzed by me.
+TST11872:
+http://compbio.biogen.com:3838/Quickomics/?serverfile=TST11872
+TST11955:
+http://compbio.biogen.com:3838/Quickomics/?serverfile=TST11955
+TST12086
+http://compbio.biogen.com:3838/Quickomics/?serverfile=TST12086
+
+
+(ITEM 2)================== Above QuickOmics link final or Not? ========================
+TST11872 and TST11955 are final and contain only 3 repeats
+TST12086 contains 4 repeats, you may select the one in the ITEM3/attachment, OR you may wait for me to update the samples and make a final link
+
+(ITEM 3)======================== Samples used =============================
+(3.1) The TST11872 has 3 repeats,  All samples are utilized in the analysis.
+
+(3.2) The TST11955 has 4 repeats, the repeat4 is different from the others,  
+hence the first 3 samples (e.g. NGN2-BIO-6960-3x-1,  NGN2-BIO-6960-3x-2, NGN2-BIO-6960-3x-3 ) are utilized in the analysis.
+
+(3.3) The TST12086 has 4 repeats (majority samples) or 3 repeats (some bridge samples which across different plates for plate variablities).
+The 3 repeats are selected largely randomly because no specific repeats are obviously different from the rest.
+The files selected were in the attached files "TST12086_samples.xlsx".  
+
+
+One of the bridge groups has 2 bams ("bridge-a" produced no results):
+Sy5Y-BIO-1755497-3x-bridge-b.Aligned.sortedByCoord.out.bam
+Sy5Y-BIO-1755497-3x-bridge-c.Aligned.sortedByCoord.out.bam
+
+The good news is that Essentially no bridged samples are used in the compounds-induced DSG analysis
+
+
+(ITEM 4)======================== Raw bam files location =============================
+All passed bam files are in the following top level of the bam files folder (Subfolders may contain BAD/Unsed ones)
+
+/edgehpc/dept/compbio/projects/TST11872/dnanexus/20220204181515_zhen.gao/bam/
+/edgehpc/dept/compbio/projects/TST11955/dnanexus/20220723054602_Zhen.Gao/bam
+/edgehpc/dept/compbio/projects/TST12086/dnanexus/20230305034844_Zhen.Gao/bam/
+
+
+Best regards,
+
+Zhen
