@@ -1,0 +1,152 @@
+###########==== (1) mkdir and load anaconda =====######### 
+cd /edgehpc/dept/compbio/users/zgao1
+mkdir conda_gao
+module load anaconda3/4.9.2
+ 
+ 
+###########==== (2) creat conda channel ====######### 
+conda create -p /edgehpc/dept/compbio/users/zgao1/conda_gao/r_main -c conda-forge -c bioconda -c vtraag r-harmony r-essentials r-base r-devtools rpy2 r-wgcna r-hdf5r r-seurat r-Matrix r-Matrix.utils r-tidyverse r-data.table r-glue r-ggpubr r-ggrepel r-optparse r-FNN r-igraph r-gplotsr bioconductor-singlecellexperiment bioconductor-deseq2 bioconductor-keggprofile bioconductor-biomaRt bioconductor-org.Hs.eg.db bioconductor-org.Mm.eg.db python=3.7 seaborn scikit-learn statsmodels numba pytables python-igraph leidenalg louvain scanpy pandas=1.2.4 harmonypy jupyterlab
+
+###########==== (3) request a long time Job to run my GUI  ====######### 
+srun -N 1 --partition long.cpu --time 12:00:00 --pty bash # login to a node    # request a long time Job to run my GUI 
+
+
+###########==== (4) make the jupyter setup bash ====#########  
+#### The following is the content of === "jupter_setup_scanpy_wgcna_knn_env_edge.bash" ####
+####
+module load anaconda3/4.9.2
+conda activate /edgehpc/dept/compbio/users/zgao1/conda_gao/r_main
+jupyter lab --no-browser --ip=`/usr/bin/hostname -I | /usr/bin/grep -oE "10.106.192.[0-9]{1,3}"`
+####
+
+###########==== (5) source jupter_setup_scanpy_wgcna_knn_env_edge.bash ====######### 
+
+
+###########==== (6) run Jupyter in web-browser (Chrome here) (and one of the following 3 will be OK)====######### 
+To access the server, open this file in a browser:
+    file:///home/zgao1/.local/share/jupyter/runtime/jpserver-134319-open.html
+Or copy and paste one of these URLs:
+        http://10.106.192.127:8888/lab?token=f09229bc6449bce33337ac7eb28ef1376b47ece7c1e7b79b
+or http://127.0.0.1:8888/lab?token=f09229bc6449bce33337ac7eb28ef1376b47ece7c1e7b79b
+
+
+###########==== (7) check conda env ====######### 
+module load anaconda3/4.9.2
+conda 
+
+# https://kapeli.com/cheat_sheets/Conda.docset/Contents/Resources/Documents/index
+conda info --envs
+# conda environments:
+#
+base                  *  /edgehpc/apps/gb/anaconda3/4.9.2
+agat                     /edgehpc/apps/gb/anaconda3/4.9.2/envs/agat
+compchem                 /edgehpc/apps/gb/anaconda3/4.9.2/envs/compchem
+gpu_playground           /edgehpc/apps/gb/anaconda3/4.9.2/envs/gpu_playground
+leafcutter               /edgehpc/apps/gb/anaconda3/4.9.2/envs/leafcutter
+majiq-1.1.4              /edgehpc/apps/gb/anaconda3/4.9.2/envs/majiq-1.1.4
+multiqc                  /edgehpc/apps/gb/anaconda3/4.9.2/envs/multiqc
+seminar                  /edgehpc/apps/gb/anaconda3/4.9.2/envs/seminar
+test2                    /edgehpc/apps/gb/anaconda3/4.9.2/envs/test2
+                         /edgehpc/dept/compbio/users/zgao1/conda_gao/r_main
+
+
+
+conda activate /edgehpc/dept/compbio/users/zgao1/conda_gao/r_main
+jupyter lab --no-browser --ip=`/usr/bin/hostname -I | /usr/bin/grep -oE "10.106.192.[0-9]{1,3}"`
+
+
+###########==== (8) make other conda env (Updating an channel IS just use the same name and add more library) ====######### 
+###########==== (8.1) UPdate aconda ====######### 
+conda create -p /edgehpc/dept/compbio/users/zgao1/conda_gao/r_main -c conda-forge -c bioconda -c vtraag                                                                               \
+r-harmony r-essentials r-base r-devtools rpy2 r-wgcna r-hdf5r r-seurat r-Matrix r-Matrix.utils r-tidyverse r-data.table r-glue r-ggpubr r-ggrepel r-optparse r-FNN r-igraph r-gplotsr \
+bioconductor-singlecellexperiment bioconductor-deseq2 bioconductor-keggprofile bioconductor-biomaRt bioconductor-org.Hs.eg.db bioconductor-org.Mm.eg.db                        \
+python=3.7 seaborn scikit-learn statsmodels numba pytables python-igraph leidenalg louvain scanpy pandas=1.2.4 harmonypy jupyterlab
+#conda install -c bioconda bioconductor-complexheatmap #### =====<<<<<<<<<
+
+#https://anaconda.org/bioconda/bioconductor-complexheatmap
+
+###########==== (8.2) Creat a new conda env r_RNAseq_Splicing with r 4.0 ====######### 
+# http://salvatoregiorgi.com/blog/2018/10/16/installing-an-older-version-of-r-in-a-conda-environment/
+# Tutorial:Installing an updated R version (>=4.0) using conda 
+# https://www.biostars.org/p/498049/
+
+$ conda config --add channels conda-forge
+$ conda config --set channel_priority strict
+$ conda search r-base
+
+r-base                         3.5.1   h08e1455_1008  conda-forge         
+r-base                         3.5.3      h067a564_0  pkgs/r              
+r-base                         3.6.0      hce969dd_0  pkgs/r              
+r-base                         3.6.3      hd23ff56_6  conda-forge         
+r-base                         3.6.3      hd272fe0_4  conda-forge 
+r-base                         4.0.0      hdca8982_2  conda-forge     
+r-base                         4.0.3      hd23ff56_6  conda-forge         
+r-base                         4.1.2      hde4fec0_0  conda-forge         
+...
+
+$ conda create -p /edgehpc/dept/compbio/users/zgao1/conda_gao/r_RNAseq_Splicing
+
+$ conda activate /edgehpc/dept/compbio/users/zgao1/conda_gao/r_RNAseq_Splicing
+$ which R
+/usr/bin/which: no R in (/edgehpc/dept/compbio/users/zgao1/conda_gao/r_RNAseq_Splicing/bin:/edgehpc/apps/gb/anaconda3/4.9.2/condabin:/edgehpc/apps/gb/anaconda3/4.9.2:/edgehpc/apps/gb/anaconda3/4.9.2/sbin:/edgehpc/apps/gb/anaconda3/4.9.2/bin:/edgehpc/apps/sp/linux-centos7-x86_64/gcc-4.8.5/gcc-11.1.0-jxbykdjc57qtdxyci3o5wq75p3odpthq/bin:/cm/shared/apps/slurm/current/sbin:/cm/shared/apps/slurm/current/bin:/edgehpc/apps/gb/spack/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/zgao1/.local/bin:/home/zgao1/bin)
+(/edgehpc/dept/compbio/users/zgao1/conda_gao/r_RNAseq_Splicing) ~ zgao1@edge-hpc-log-101 $ 
+
+$  R
+-bash: R: command not found
+
+$ conda install -c conda-forge r-base=4.0.3         #conda install -c conda-forge r=4.0.3
+
+$ R
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+$ which R
+/edgehpc/dept/compbio/users/zgao1/conda_gao/r_RNAseq_Splicing/bin/R
+(/edgehpc/dept/compbio/users/zgao1/conda_gao/r_RNAseq_Splicing) ~ zgao1@edge-hpc-log-101 $ 
+
+$  conda info --env
+# conda environments:
+base                     /edgehpc/apps/gb/anaconda3/4.9.2
+test2                    /edgehpc/apps/gb/anaconda3/4.9.2/envs/test2
+                      *  /edgehpc/dept/compbio/users/zgao1/conda_gao/r_RNAseq_Splicing
+                         /edgehpc/dept/compbio/users/zgao1/conda_gao/r_main
+
+
+conda install -c bioconda -c conda-forge -c vtraag \
+python=3.7 seaborn scikit-learn statsmodels numba pytables python-igraph leidenalg louvain scanpy pandas=1.2.4 harmonypy jupyterlab \
+r-harmony r-essentials r-base r-devtools rpy2 r-wgcna r-hdf5r r-seurat r-Matrix r-Matrix.utils r-tidyverse r-data.table r-glue r-ggpubr r-ggrepel r-optparse r-FNN r-igraph r-knitr r-readr \
+curl libcurl libxml2 \
+bioconductor-singlecellexperiment bioconductor-deseq2 bioconductor-keggprofile bioconductor-biomaRt bioconductor-org.Hs.eg.db bioconductor-org.Mm.eg.db \
+bioconductor-complexheatmap bioconductor-biocparallel  bioconductor-tcgabiolinks
+
+
+#conda install -c bioconda bioconductor-complexheatmap  
+# bioconductor-complexheatmap bioconductor-biocparallel
+# r-knitr libxml2
+# The following packages are not available from current channels:
+#  - r-gplotsr # removed hence 
+Current channels:
+
+  - https://conda.anaconda.org/bioconda/linux-64
+  - https://conda.anaconda.org/bioconda/noarch
+  - https://conda.anaconda.org/conda-forge/linux-64
+  - https://conda.anaconda.org/conda-forge/noarch
+  - https://conda.anaconda.org/vtraag/linux-64
+  - https://conda.anaconda.org/vtraag/noarch
+  - https://repo.anaconda.com/pkgs/main/linux-64
+  - https://repo.anaconda.com/pkgs/main/noarch
+  - https://repo.anaconda.com/pkgs/r/linux-64
+  - https://repo.anaconda.com/pkgs/r/noarch
+
+# Huge amount conflicts reported (e.g):
+# Package r-pillar conflicts for:
+# r-ggpubr -> r-dplyr[version='>=0.7.1'] -> r-pillar[version='>=1.5.1']
+# bioconductor-tcgabiolinks -> r-dplyr -> r-pillar[version='>=1.1.0|>=1.3.1|>=1.4.3|>=1.5.0|>=1.5.1']
+# r-tidyverse -> r-pillar[version='>=1.4.2|>=1.6.0']
+# r-tidyverse -> r-dplyr[version='>=1.0.5'] -> r-pillar[version='>=1.1.0|>=1.3.1|>=1.4.3|>=1.5.0|>=1.5.1']
+# r-readr -> r-tibble -> r-pillar[version='>=1.1.0|>=1.3.1|>=1.4.3|>=1.5.0']
+# r-essentials -> r-dplyr[version='>=0.7.8'] -> r-pillar[version='>=1.1.0|>=1.3.1|>=1.4.3|>=1.5.0|>=1.5.1|>=1.6.0|>=1.4.2']
+# r-harmony -> r-dplyr -> r-pillar[version='>=1.1.0|>=1.3.1|>=1.4.3|>=1.5.0|>=1.5.1']
+# r-seurat -> r-dplyr -> r-pillar[version='>=1.1.0|>=1.3.1|>=1.4.3|>=1.5.0|>=1.5.1']
+

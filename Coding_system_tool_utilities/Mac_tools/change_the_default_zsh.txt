@@ -1,0 +1,19 @@
+https://crunchify.com/how-to-change-mac-os-x-terminal-color/
+
+Open terminal window
+Click on Terminal Menu
+Click on Preference
+Modify profile as per below image
+Select profile for
+
+
+
+On startup, 
+
+1) select "text" change the color as you like  
+
+2) selet the "shell" to run 
+source .bashrc
+
+then see the change_zsh_to_bash.sh
+
