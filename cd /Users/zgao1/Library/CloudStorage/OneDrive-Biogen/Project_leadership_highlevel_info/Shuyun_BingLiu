@@ -1,0 +1,46 @@
+ cd /Users/zgao1/Library/CloudStorage/OneDrive-Biogen/Project_leadership_highlevel_info/Shuyun_Jeron_BingLiu 
+(base) BMC-C02CC93JMD6M:Shuyun_Jeron_BingLiu zgao1$ tree
+.
+├── 20190409-SMASM_fibroblast_RNA-seq_splicing_DEG_compared_to_publicdata.pptx
+├── 2021 - Monteys et al. - Regulated control of gene therapies by drug-induced splicing.pdf
+├── Branaplam_01x_03x_10x_dose_dependent.csv
+├── Palacino_2015_published_version.pdf
+├── data
+│   ├── Branaplam_ Selection
+│   │   ├── summarytable_branaplam_gene_sorted_NGN2.xlsx
+│   │   ├── summarytable_branaplam_gene_sorted_fibroblast.xlsx
+│   │   └── summarytable_branaplam_gene_sorted_iPSC.xlsx
+│   ├── NGN2summarytable_branaplam_gene_sorted.csv
+│   ├── iPSCsummarytable_branaplam_gene_sorted.csv
+│   ├── merged_metrics_utilities.xlsx
+│   └── summarytable_branaplam_gene_sorted1.xlsx
+├── location
+│   ├── ANKRD13D_clu_8699_NA_table.pdf
+│   ├── ANKS3_clu_15533_NA_table.pdf
+│   ├── APLP2_clu_9363_NA_table.pdf
+│   ├── ASAP1_clu_26858_NA_table.pdf
+│   ├── AXIN1_clu_15268_NA_table.pdf
+│   ├── Branaplam_01x_03x_10x_dose_dependent.csv
+│   ├── CACNA2D1_clu_27690_NA_table.pdf
+│   ├── DDX42_clu_22164_NA_table.pdf
+│   ├── ENAH_clu_4711_NA_table.pdf
+│   ├── EVC_clu_19955_NA_table.pdf
+│   ├── EXOC6B_clu_647_NA_table.pdf
+│   ├── FCHO2_clu_12710_NA_table.pdf
+│   ├── LARP7_clu_20509_NA_table.pdf
+│   ├── MLLT10_clu_5082_NA_table.pdf
+│   ├── PNISR_clu_23576_NA_table.pdf
+│   ├── POMT2_clu_6735_NA_table.pdf
+│   ├── RP11-542K23.9_clu_10087_NA_table.pdf
+│   ├── SF3B3_clu_16290_NA_table.pdf
+│   ├── SMN2_clu_12686_NA_table.pdf
+│   ├── SREK1_clu_12655_NA_table.pdf
+│   ├── STRN3_clu_6299_NA_table.pdf
+│   ├── TAF2_clu_26801_NA_table.pdf
+│   ├── VPS29_clu_19126_NA_table.pdf
+│   ├── WNK1_clu_17946_NA_table.pdf
+│   └── XRN2_clu_25554_NA_table.pdf
+├── nchembio0915-741a.pdf
+├── summarytable_branaplam_gene_sorted.xlsx
+└── summarytable_branaplam_gene_sorted1.xlsx
+
