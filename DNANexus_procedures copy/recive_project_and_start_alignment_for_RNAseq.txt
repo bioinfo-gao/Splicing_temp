@@ -1,0 +1,30 @@
+# /camhpc/home/zgao1/NGS_projects/Generally_Procedure/camhpc/home/zgao1/NGS_projects/Generally_Procedure
+1) obtain the TST number , here TST 11955
+1.1A) directly click the link in 
+http://ngs.biogen.com/ngs_one/app//core/app_task_chat.php?ID=2628#Message_972
+
+1.1B) Goto
+http://ngs.biogen.com/ngs_one/  search TST11872, read the basic information
+
+
+2) Goto https://fastr.biogen.com/analysis
+2.1) seleect the TST11872
+
+2.2) in the samples 
+click "select all"
+
+
+2.3) Review Reference
+Species
+homo_sapiens
+
+2.4) Version
+Human.GRCh38.v34.l1_5.ERCC
+
+
+2.5) clcik the bottom "start run analysis" 
+
+a bubule came out in the topright.
+
+the process takes 18 hours.
+

@@ -1,0 +1,1 @@
+ wget -i sample_url.txt 
