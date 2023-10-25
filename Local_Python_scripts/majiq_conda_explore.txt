@@ -1,0 +1,45 @@
+Download
+These are the instruction for reviewers to download the new MAJIQ implementation included in the paper “Outlier detection for improved differential splicing quantification from RNA-Seq experiments with replicates”.
+
+Download MAJIQ/VOILA requires an installation of Python Conda environment, once you have it installed use the following commands:
+
+$ conda config --add channels bcbio
+$ conda create -n majiq_env -c http://majiq.biociphers.org/download/channel majiq
+
+
+https://majiq.biociphers.org/download/channel/
+linx-32/
+linx-64/
+osx-64/
+win-32/
+
+https://majiq.biociphers.org/download/channel/osx-64/
+
+$ conda create -n majiq_env -c http://majiq.biociphers.org/download/channel/osx-64 majiq
+
+conda create -n majiq_env -c http://majiq.biociphers.org/download/channel majiq
+Collecting package metadata (current_repodata.json): failed
+
+UnavailableInvalidChannel: The channel is not accessible or is invalid.
+  channel name: download/channel
+  channel url: http://majiq.biociphers.org/download/channel
+  error code: 404
+
+You will need to adjust your conda configuration to proceed.
+Use `conda config --show channels` to view your configuration's current state,
+and use `conda config --show-sources` to view config file locations.
+
+
+(base) ~ :  
+zgao1@ zhens-mbp $ conda create -n majiq_env -c http://majiq.biociphers.org/download/channel/osx-64 majiq
+Collecting package metadata (current_repodata.json): failed
+
+UnavailableInvalidChannel: The channel is not accessible or is invalid.
+  channel name: download/channel
+  channel url: http://majiq.biociphers.org/download/channel
+  error code: 404
+
+You will need to adjust your conda configuration to proceed.
+Use `conda config --show channels` to view your configuration's current state,
+and use `conda config --show-sources` to view config file locations.
+

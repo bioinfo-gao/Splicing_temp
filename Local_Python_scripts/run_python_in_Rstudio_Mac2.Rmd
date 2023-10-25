@@ -1,0 +1,85 @@
+```{r, setup, include=FALSE}
+#install.packages("reticulate")
+library(reticulate)
+#install_miniconda()
+use_virtualenv("scipy") 
+reticulate::py_install("scipy") # The packages will by default be installed within a virtualenv or Conda environment named “”
+# reticulate::py_install("pandas") 
+# reticulate::py_install("imp") 
+use_virtualenv("r-reticulate")
+use_virtualenv("scipy") 
+reticulate::py_install("scipy") # The packages will by default be installed within a virtualenv or Conda environment named “r-reticulate”. F
+# Collecting package metadata (current_repodata.json): ...working... done
+# Solving environment: ...working... done
+# ## Package Plan ##
+#   environment location: /Users/zgao1/Library/r-miniconda/envs/r-reticulate
+#   added / updated specs:     - scipy
+# use_python("/usr/local/bin/python")
+# conda env list
+
+
+# conda create --name py35 python=3.5
+#### the following are R languages===================================================================
+# use_virtualenv("scipy") 
+# reticulate::use_virtualenv("/Users/zgao1/Library/r-miniconda/envs/r-reticulate")
+# reticulate::use_virtualenv("r-reticulate")
+# reticulate::py_install("scipy") # The packages will by default be installed within a virtualenv or Conda environment named “”
+# reticulate::py_install("pandas") 
+# reticulate::py_install("imp") 
+# data <- read.csv("https://raw.githubusercontent.com/roberthryniewicz/datasets/master/airline-dataset/flights/flights.csv")
+# 
+# install.packages("RCurl")
+# library (RCurl)
+# download <- getURL("https://data.kingcounty.gov/api/views/yaai-7frk/rows.csv?accessType=DOWNLOAD")
+# data <- read.csv (text = download)
+# data <- read.csv("https://raw.githubusercontent.com/roberthryniewicz/datasets/master/airline-dataset/flights/flights.csv")
+reticulate::repl_python()
+# Python 3.8.12 (/Users/zgao1/Library/r-miniconda/envs/r-reticulate/bin/python)
+# Reticulate 1.24 REPL -- A Python interpreter in R.
+# ==================>>>>>>>>>>>>Enter 'exit' or 'quit' to exit the REPL and return to R.
+```
+
+```{python}
+import pandas   as pd
+import numpy    as np
+import datetime as dt
+import scipy
+import imp
+imp.find_module('pandas') # (None, '/Users/zgao1/Library/r-miniconda/envs/r-reticulate/lib/python3.8/site-packages/pandas', ('', '', 5))
+import os
+os.getcwd()
+flight = pd.read_csv("/Volumes/ngs/projects/TST11872/dnanexus/20220204181515_zhen.gao/code/motif_code/DATA/flights.csv") #flight = pd.read_csv("flights.csv")
+pd.set_option('display.max_columns', None) # the defalt only show 5 columns
+flight.head(100)
+flight.head()
+flight.describe()
+flight = flight[flight['Dest'] == "LAS"]# "ORD"] 
+flight = flight[[ 'UniqueCarrier','DepDelay','ArrDelay']] 
+flight = flight  
+flight.shape # (6734, 3)
+
+```
+
+
+```{r}
+# https://github.com/ContinuumIO/anaconda-issues/issues/7068         #=========>>> /bin/sh: x86_64-apple-darwin13.4.0-clang: command not found
+# ==================>>>>>>>>>>>>> export CONDA_BUILD_SYSROOT=$(xcrun --show-sdk-path) =========> before ========> rstudio &
+install.packages("ggplot2")
+library(ggplot2)
+ggplot(py$flight, aes(UniqueCarrier, ArrDelay)) + geom_point() + geom_jitter()
+
+```
+
+```{r}
+```
+```{r}
+```
+
+```{r}
+```
+
+```{r}
+```
+
+```{r}
+```

@@ -1,0 +1,120 @@
+```{r, setup, include=FALSE}
+#install.packages("RcppTOML")
+#install.packages("reticulate")
+library(reticulate)
+#install_miniconda()
+# reticulate::py_install("scipy") # The packages will by default be installed within a virtualenv or Conda environment named “r-reticulate”. F
+# Collecting package metadata (current_repodata.json): ...working... done
+# Solving environment: ...working... done
+# ## Package Plan ##
+#   environment location: /Users/zgao1/Library/r-miniconda/envs/r-reticulate
+#   added / updated specs:     - scipy
+# use_python("/usr/local/bin/python")
+# conda env list
+
+
+# conda create --name py35 python=3.5
+#### the following are R languages===================================================================
+#use_virtualenv("scipy") 
+# reticulate::use_virtualenv("/Users/zgao1/Library/r-miniconda/envs/r-reticulate")
+# reticulate::use_virtualenv("r-reticulate")
+# reticulate::py_install("scipy") # The packages will by default be installed within a virtualenv or Conda environment named “”
+# reticulate::py_install("pandas") 
+# reticulate::py_install("imp") 
+data <- read.csv("https://raw.githubusercontent.com/roberthryniewicz/datasets/master/airline-dataset/flights/flights.csv")
+
+install.packages("RCurl")
+library (RCurl)
+download <- getURL("https://data.kingcounty.gov/api/views/yaai-7frk/rows.csv?accessType=DOWNLOAD")
+data <- read.csv (text = download)
+data <- read.csv("https://raw.githubusercontent.com/roberthryniewicz/datasets/master/airline-dataset/flights/flights.csv")
+```
+
+```{python}
+# conda activate  /Users/zgao1/Library/r-miniconda/envs/r-reticulate
+# (r-reticulate) ~ :  
+# zgao1@ zhens-mbp $ pip install numpy pandas
+#import pandas   as pd
+# reticulate::repl_python()
+# Python 3.8.12 (/Users/zgao1/Library/r-miniconda/envs/r-reticulate/bin/python)
+# Reticulate 1.24 REPL -- A Python interpreter in R.
+# Enter 'exit' or 'quit' to exit the REPL and return to R.
+import pandas   as pd ######=========================>>>> in the default R, run this line, will case automatically # reticulate::repl_python() first
+# Python 3.8.12 (/Users/zgao1/Library/r-miniconda/envs/r-reticulate/bin/python)
+# Reticulate 1.24 REPL -- A Python interpreter in R.
+# Enter 'exit' or 'quit' to exit the REPL and return to R.
+# then ============>>> import pandas   as pd
+import numpy    as np
+import datetime as dt
+import scipy
+import imp
+
+# eticulate::repl_python()
+# No non-system installation of Python could be found.
+# Would you like to download and install Miniconda?
+# Miniconda is an open source environment management system for Python.
+# See https://docs.conda.io/en/latest/miniconda.html for more details.
+# 
+# Would you like to install Miniconda? [Y/n]: import pandas
+# Please answer yes or no: yes
+# Miniconda has been successfully installed at "~/Library/r-miniconda".
+# Python 3.8.12 (/Users/zgao1/Library/r-miniconda/envs/r-reticulate/bin/python)
+# Reticulate 1.24 REPL -- A Python interpreter in R.
+# Enter 'exit' or 'quit' to exit the REPL and return to R.
+
+# conda activate  /Users/zgao1/Library/r-miniconda/envs/r-reticulate
+# (r-reticulate) ~ :  
+# zgao1@ zhens-mbp $ which python
+# /Users/zgao1/Library/r-miniconda/envs/r-reticulate/bin/python
+# (r-reticulate) ~ :  
+# zgao1@ zhens-mbp $ python
+# Python 3.8.12 | packaged by conda-forge | (default, Jan 30 2022, 23:36:06) 
+imp.find_module('pandas') # (None, '/Users/zgao1/Library/r-miniconda/envs/r-reticulate/lib/python3.8/site-packages/pandas', ('', '', 5))
+import os
+os.getcwd()
+#flight = pandas.read_csv("flights.csv")
+flight = pd.read_csv("/Volumes/ngs/projects/TST11872/dnanexus/20220204181515_zhen.gao/code/motif_code/DATA/flights.csv")
+#pd.set_option('display.max_columns', None) # the defalt only show 5 columns
+flight.head(100)
+flight.head()
+flight.describe()
+flight = flight[flight['Dest'] == "LAS"]# "ORD"] 
+flight = flight[[ 'UniqueCarrier','DepDelay','ArrDelay']] 
+flight = flight  
+flight.shape # (6734, 3)
+
+```
+
+
+```{r}
+# ERROR: dependencies ‘ellipsis’, ‘glue’, ‘rlang’ are not available for package ‘vctrs’
+# ERROR: dependency ‘lifecycle’ is not available for package ‘scales’
+# ERROR: dependencies ‘cli’, ‘ellipsis’, ‘glue’, ‘lifecycle’, ‘rlang’, ‘vctrs’ are not available for package ‘pillar’
+# ERROR: dependencies ‘ellipsis’, ‘lifecycle’, ‘pillar’, ‘rlang’, ‘vctrs’ are not available for package ‘tibble’
+# ERROR: dependencies ‘glue’, ‘rlang’, ‘scales’, ‘tibble’ are not available for package ‘ggplot2’
+
+install.packages("glue")
+install.packages("")
+install.packages("")
+install.packages("")
+install.packages("")
+install.packages("")
+
+install.packages("ggplot2")
+library(ggplot2)
+py$flight
+```
+
+```{r}
+```
+```{r}
+```
+
+```{r}
+```
+
+```{r}
+```
+
+```{r}
+```
