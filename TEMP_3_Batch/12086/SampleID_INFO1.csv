@@ -1,0 +1,7 @@
+Sample,SampleID,BaseSpaceID,Type,Species
+1,INV1,2016-12-28-01_S3_R1,Control_INV,human
+2,INV2,2016-12-28-02_S11_R1,Control_INV,human
+3,SSX2_1,2016-12-28-03_S2_R1,siRNA1_SSX2,human
+4,SSX2_2,2016-12-28-04_S8_R1,siRNA1_SSX2,human
+5,SXB_1,2016-12-28-05_S6_R1,siRNA2_SXB,human
+6,SXB_2,2016-12-28-06_S10_R1,siRNA2_SXB,human
