@@ -1,0 +1,178 @@
+tree
+.
+├── HTT
+│   ├── 20220401 RNA-seq planning and LID resources.pptx
+│   ├── 20220422_HTT-SM_RNAseq-Study2 (002).pptx
+│   └── HTT_RNAseq data (1).xlsx
+├── Pharmalex_Matthew_Ryals
+│   ├── Antonio
+│   │   ├── Branaplan_stats.png
+│   │   ├── Ristaplan_stats.png
+│   │   ├── Workflow_Harm_function.pptx
+│   │   ├── [EXTERNAL] Harmionization results and stats for GOIs
+│   │   │   ├── Branaplan_stats.png
+│   │   │   ├── Ristaplan_stats.png
+│   │   │   ├── Workflow_Harm_function.pptx
+│   │   │   └── results_GOIs.zip
+│   │   ├── results_GOIs
+│   │   │   ├── Comp1
+│   │   │   │   ├── Res_harm_APLP2_BIO-1755497_0.3.csv
+│   │   │   │   ├── Res_harm_APLP2_BIO-1755497_0.5.csv
+│   │   │   │   ├── Res_harm_APLP2_BIO-1755497_0.8.csv
+│   │   │   │   ├── Res_harm_APLP2_BIO-1755497_0.9.csv
+│   │   │   │   ├── Res_harm_ENAH_BIO-1755497_0.3.csv
+│   │   │   │   ├── Res_harm_ENAH_BIO-1755497_0.5.csv
+│   │   │   │   ├── Res_harm_GALC_BIO-1755497_0.3.csv
+│   │   │   │   ├── Res_harm_GALC_BIO-1755497_0.5.csv
+│   │   │   │   ├── Res_harm_GALC_BIO-1755497_0.8.csv
+│   │   │   │   ├── Res_harm_GALC_BIO-1755497_0.9.csv
+│   │   │   │   ├── Res_harm_HTT_BIO-1755497_0.3.csv
+│   │   │   │   ├── Res_harm_HTT_BIO-1755497_0.5.csv
+│   │   │   │   ├── Res_harm_HTT_BIO-1755497_0.8.csv
+│   │   │   │   ├── Res_harm_HTT_BIO-1755497_0.9.csv
+│   │   │   │   ├── Res_harm_KCNT2_BIO-1755497_0.3.csv
+│   │   │   │   ├── Res_harm_KCNT2_BIO-1755497_0.5.csv
+│   │   │   │   ├── Res_harm_KCNT2_BIO-1755497_0.8.csv
+│   │   │   │   ├── Res_harm_KCNT2_BIO-1755497_0.9.csv
+│   │   │   │   ├── Res_harm_PFDN5_BIO-1755497_0.3.csv
+│   │   │   │   ├── Res_harm_PFDN5_BIO-1755497_0.5.csv
+│   │   │   │   ├── Res_harm_PFDN5_BIO-1755497_0.8-BMC-C02CC93JMD6M.csv
+│   │   │   │   ├── Res_harm_PFDN5_BIO-1755497_0.8.csv
+│   │   │   │   ├── Res_harm_PFDN5_BIO-1755497_0.9.csv
+│   │   │   │   ├── Res_harm_POMT2_BIO-1755497_0.3.csv
+│   │   │   │   ├── Res_harm_POMT2_BIO-1755497_0.5.csv
+│   │   │   │   ├── Res_harm_POMT2_BIO-1755497_0.8.csv
+│   │   │   │   ├── Res_harm_POMT2_BIO-1755497_0.9.csv
+│   │   │   │   ├── Res_harm_QKI_BIO-1755497_0.3.csv
+│   │   │   │   ├── Res_harm_QKI_BIO-1755497_0.5.csv
+│   │   │   │   ├── Res_harm_QKI_BIO-1755497_0.8.csv
+│   │   │   │   ├── Res_harm_QKI_BIO-1755497_0.9.csv
+│   │   │   │   ├── Res_harm_SENP6_BIO-1755497_0.3.csv
+│   │   │   │   ├── Res_harm_SENP6_BIO-1755497_0.5.csv
+│   │   │   │   ├── Res_harm_SENP6_BIO-1755497_0.8.csv
+│   │   │   │   ├── Res_harm_SENP6_BIO-1755497_0.9.csv
+│   │   │   │   ├── Res_harm_SH3YL1_BIO-1755497_0.3.csv
+│   │   │   │   ├── Res_harm_SH3YL1_BIO-1755497_0.5.csv
+│   │   │   │   ├── Res_harm_STRN3_BIO-1755497_0.3.csv
+│   │   │   │   ├── Res_harm_STRN3_BIO-1755497_0.5.csv
+│   │   │   │   ├── Res_harm_STRN3_BIO-1755497_0.8.csv
+│   │   │   │   ├── Res_harm_STRN3_BIO-1755497_0.9.csv
+│   │   │   │   ├── Res_harm_Stats_Ristaplan.csv
+│   │   │   │   └── Ristaplan_stats.png
+│   │   │   └── Comp2
+│   │   │       ├── Branaplan_stats.png
+│   │   │       ├── Res_harm_APLP2_BIO-1949634_0.3.csv
+│   │   │       ├── Res_harm_APLP2_BIO-1949634_0.5.csv
+│   │   │       ├── Res_harm_APLP2_BIO-1949634_0.8.csv
+│   │   │       ├── Res_harm_APLP2_BIO-1949634_0.9.csv
+│   │   │       ├── Res_harm_ENAH_BIO-1949634_0.3.csv
+│   │   │       ├── Res_harm_ENAH_BIO-1949634_0.5.csv
+│   │   │       ├── Res_harm_ENAH_BIO-1949634_0.8.csv
+│   │   │       ├── Res_harm_ENAH_BIO-1949634_0.9.csv
+│   │   │       ├── Res_harm_GALC_BIO-1949634_0.3.csv
+│   │   │       ├── Res_harm_GALC_BIO-1949634_0.5.csv
+│   │   │       ├── Res_harm_GALC_BIO-1949634_0.8.csv
+│   │   │       ├── Res_harm_GALC_BIO-1949634_0.9.csv
+│   │   │       ├── Res_harm_HTT_BIO-1949634_0.3.csv
+│   │   │       ├── Res_harm_HTT_BIO-1949634_0.5.csv
+│   │   │       ├── Res_harm_HTT_BIO-1949634_0.8.csv
+│   │   │       ├── Res_harm_HTT_BIO-1949634_0.9.csv
+│   │   │       ├── Res_harm_KCNT2_BIO-1949634_0.3.csv
+│   │   │       ├── Res_harm_KCNT2_BIO-1949634_0.5.csv
+│   │   │       ├── Res_harm_KCNT2_BIO-1949634_0.8.csv
+│   │   │       ├── Res_harm_KCNT2_BIO-1949634_0.9.csv
+│   │   │       ├── Res_harm_PFDN5_BIO-1949634_0.3.csv
+│   │   │       ├── Res_harm_PFDN5_BIO-1949634_0.5.csv
+│   │   │       ├── Res_harm_PFDN5_BIO-1949634_0.8.csv
+│   │   │       ├── Res_harm_PFDN5_BIO-1949634_0.9.csv
+│   │   │       ├── Res_harm_POMT2_BIO-1949634_0.3.csv
+│   │   │       ├── Res_harm_POMT2_BIO-1949634_0.5.csv
+│   │   │       ├── Res_harm_POMT2_BIO-1949634_0.8.csv
+│   │   │       ├── Res_harm_POMT2_BIO-1949634_0.9.csv
+│   │   │       ├── Res_harm_QKI_BIO-1949634_0.3.csv
+│   │   │       ├── Res_harm_QKI_BIO-1949634_0.5.csv
+│   │   │       ├── Res_harm_QKI_BIO-1949634_0.8.csv
+│   │   │       ├── Res_harm_QKI_BIO-1949634_0.9.csv
+│   │   │       ├── Res_harm_SENP6_BIO-1949634_0.3.csv
+│   │   │       ├── Res_harm_SENP6_BIO-1949634_0.5.csv
+│   │   │       ├── Res_harm_SENP6_BIO-1949634_0.8.csv
+│   │   │       ├── Res_harm_SENP6_BIO-1949634_0.9.csv
+│   │   │       ├── Res_harm_SH3YL1_BIO-1949634_0.3.csv
+│   │   │       ├── Res_harm_SH3YL1_BIO-1949634_0.5.csv
+│   │   │       ├── Res_harm_SNAP23_BIO-1949634_0.3.csv
+│   │   │       ├── Res_harm_SNAP23_BIO-1949634_0.5.csv
+│   │   │       ├── Res_harm_SNAP23_BIO-1949634_0.8.csv
+│   │   │       ├── Res_harm_SNAP23_BIO-1949634_0.9.csv
+│   │   │       ├── Res_harm_STRN3_BIO-1949634_0.3.csv
+│   │   │       ├── Res_harm_STRN3_BIO-1949634_0.5.csv
+│   │   │       ├── Res_harm_STRN3_BIO-1949634_0.8.csv
+│   │   │       ├── Res_harm_STRN3_BIO-1949634_0.9.csv
+│   │   │       ├── Res_harm_Stats_Branaplan.csv
+│   │   │       ├── Res_harm_WDR17_BIO-1949634_0.3.csv
+│   │   │       └── Res_harm_WDR17_BIO-1949634_0.5.csv
+│   │   ├── splicing_harmonization_11_23_22.pptx
+│   │   └── splicing_pipeline_meeting_11_09_2022.pptx
+│   ├── RASLseq
+│   │   ├── RASL-seq_Interim14_28NOV2022(1).pptx
+│   │   ├── RASL-seq_Interim6_03MAY2022.pptx
+│   │   ├── RASL-seq_Interim7_27JUN2022.pptx
+│   │   ├── RASL-seq_Interim9_15AUG2022.pptx
+│   │   ├── Screen Shot 2023-03-23 at 11.06.38.png
+│   │   ├── Screen Shot 2023-03-23 at 11.18.47.png
+│   │   ├── Screen Shot 2023-03-23 at 11.32.27.png
+│   │   ├── Screen Shot 2023-03-23 at 11.36.59.png
+│   │   └── Screen Shot 2023-03-23 at 11.43.54.png
+│   └── Splicing
+│       ├── splicing_pipeline_argparse_05042022_slides_for_ZhenGao.pptx
+│       ├── splicing_pipeline_argparse_09NOV2022.pptx
+│       └── splicing_pipeline_argparse_25OCT2022.pptx
+├── Research
+│   └── HTT
+│       ├── RNAseq2_3v3 DSG compiled list comparison_CLG.xlsx
+│       └── spllcing_region.txt
+├── SMA
+│   └── Off-target Safety Assessment for Skyhawk SMA 3 v1.pptx
+└── Shuyun_Jeron_BingLiu
+    ├── 20190409-SMASM_fibroblast_RNA-seq_splicing_DEG_compared_to_publicdata.pptx
+    ├── 2021 - Monteys et al. - Regulated control of gene therapies by drug-induced splicing.pdf
+    ├── Branaplam_01x_03x_10x_dose_dependent.csv
+    ├── Palacino_2015_published_version.pdf
+    ├── data
+    │   ├── Branaplam_ Selection
+    │   │   ├── summarytable_branaplam_gene_sorted_NGN2.xlsx
+    │   │   ├── summarytable_branaplam_gene_sorted_fibroblast.xlsx
+    │   │   └── summarytable_branaplam_gene_sorted_iPSC.xlsx
+    │   ├── NGN2summarytable_branaplam_gene_sorted.csv
+    │   ├── iPSCsummarytable_branaplam_gene_sorted.csv
+    │   ├── merged_metrics_utilities.xlsx
+    │   └── summarytable_branaplam_gene_sorted1.xlsx
+    ├── location
+    │   ├── ANKRD13D_clu_8699_NA_table.pdf
+    │   ├── ANKS3_clu_15533_NA_table.pdf
+    │   ├── APLP2_clu_9363_NA_table.pdf
+    │   ├── ASAP1_clu_26858_NA_table.pdf
+    │   ├── AXIN1_clu_15268_NA_table.pdf
+    │   ├── Branaplam_01x_03x_10x_dose_dependent.csv
+    │   ├── CACNA2D1_clu_27690_NA_table.pdf
+    │   ├── DDX42_clu_22164_NA_table.pdf
+    │   ├── ENAH_clu_4711_NA_table.pdf
+    │   ├── EVC_clu_19955_NA_table.pdf
+    │   ├── EXOC6B_clu_647_NA_table.pdf
+    │   ├── FCHO2_clu_12710_NA_table.pdf
+    │   ├── LARP7_clu_20509_NA_table.pdf
+    │   ├── MLLT10_clu_5082_NA_table.pdf
+    │   ├── PNISR_clu_23576_NA_table.pdf
+    │   ├── POMT2_clu_6735_NA_table.pdf
+    │   ├── RP11-542K23.9_clu_10087_NA_table.pdf
+    │   ├── SF3B3_clu_16290_NA_table.pdf
+    │   ├── SMN2_clu_12686_NA_table.pdf
+    │   ├── SREK1_clu_12655_NA_table.pdf
+    │   ├── STRN3_clu_6299_NA_table.pdf
+    │   ├── TAF2_clu_26801_NA_table.pdf
+    │   ├── VPS29_clu_19126_NA_table.pdf
+    │   ├── WNK1_clu_17946_NA_table.pdf
+    │   └── XRN2_clu_25554_NA_table.pdf
+    ├── nchembio0915-741a.pdf
+    ├── summarytable_branaplam_gene_sorted.xlsx
+    └── summarytable_branaplam_gene_sorted1.xlsx
+
